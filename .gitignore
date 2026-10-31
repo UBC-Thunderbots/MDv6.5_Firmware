@@ -1,0 +1,57 @@
+.aider*
+*.cyclo
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.elf
+*.mk
+
+.DS_Store
+
+.cache
+
+EVSPIN32G4_encoder/STM32CubeIDE/.settings/
+EVSPIN32G4_encoder/STM32CubeIDE/.metadata/
+EVSPIN32G4_encoder/STM32CubeIDE/Debug/
+EVSPIN32G4_encoder/STM32CubeIDE/Release/
+
+.settings
+
+EVSPIN32G4_encoder.log
+EVSPIN32G4_encoder.ioc.bak
+EVSPIN32G4_encoder.ioc.wb
+EVSPIN32G4_encoder.settings
+
+# Project generated in a separate folder by MC Workbench when using
+# EVSPIN32G4_encoder.stwb6.
+MDv6.5_Firmware/Official_MD65_Proj/
