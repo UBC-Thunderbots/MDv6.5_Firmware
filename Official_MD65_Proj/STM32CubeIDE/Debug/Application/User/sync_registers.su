@@ -1,0 +1,5 @@
+C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/Src/sync_registers.c:33:9:RI_SetRegisterGlobal	4	static
+C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/Src/sync_registers.c:167:9:RI_SetRegisterMotor1	24	static
+C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/Src/sync_registers.c:545:9:RI_GetRegisterGlobal	8	static
+C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/Src/sync_registers.c:690:11:RI_GetRegisterMotor1	80	static
+C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/Src/sync_registers.c:1168:9:RI_MovString	4	static
