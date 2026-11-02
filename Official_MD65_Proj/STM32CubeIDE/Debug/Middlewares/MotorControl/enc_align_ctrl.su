@@ -1,4 +1,0 @@
-C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/MCSDK_v6.4.1-Full/MotorControl/MCSDK/MCLib/Any/Src/enc_align_ctrl.c:45:13:EAC_Init	0	static
-C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/MCSDK_v6.4.1-Full/MotorControl/MCSDK/MCLib/Any/Src/enc_align_ctrl.c:72:13:EAC_StartAlignment	8	static
-C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/MCSDK_v6.4.1-Full/MotorControl/MCSDK/MCLib/Any/Src/enc_align_ctrl.c:119:13:EAC_Exec	8	static
-C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/MCSDK_v6.4.1-Full/MotorControl/MCSDK/MCLib/Any/Src/enc_align_ctrl.c:162:13:EAC_GetRestartState	0	static

@@ -1,3 +1,0 @@
-C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/Src/stm32g4xx_mc_it.c:71:6:ADC1_2_IRQHandler	0	static
-C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/Src/stm32g4xx_mc_it.c:103:6:TIM1_UP_TIM16_IRQHandler	0	static
-C:/Users/mrjam/Documents/Github/MDv6.5_Firmware/Official_MD65_Proj/Src/stm32g4xx_mc_it.c:117:6:TIM1_BRK_TIM15_IRQHandler	8	static

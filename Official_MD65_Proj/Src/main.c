@@ -69,6 +69,11 @@ DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
+/* STSPIN32G4 status register snapshot, refreshed from the main loop - watch in debugger */
+STSPIN32G4_statusRegTypeDef g4_status;
+/* TEMPORARY VCC UVLO test results - watch in debugger */
+STSPIN32G4_StatusTypeDef g4_vcc_test_status;
+STSPIN32G4_confVCC g4_vcc_cfg;
 
 /* USER CODE END PV */
 
@@ -127,6 +132,21 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+  /* DEBUG_LED (PC13): 3 quick flashes = code started, LED works */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  GPIO_InitTypeDef led = {0};
+  led.Pin   = GPIO_PIN_13;
+  led.Mode  = GPIO_MODE_OUTPUT_PP;
+  led.Pull  = GPIO_NOPULL;
+  led.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &led);
+  for (uint32_t i = 0U; i < 6U; i++)
+  {
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    HAL_Delay(100U);
+  }
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -146,13 +166,38 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM4_Init();
   MX_USART1_UART_Init();
-  MX_MotorControl_Init();
+//  MX_MotorControl_Init();
   MX_FDCAN1_Init();
   MX_SPI1_Init();
+
+  MX_MotorControl_Init();
 
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
+
+  /* DEBUG_LED solid on = got past MX_NVIC_Init into the motor code */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+
+  /* TEMPORARY OCP ISOLATION TEST - remove after testing.
+   * Test A: disable the COMP1/2/4 over-current comparators as TIM1 break
+   * sources, leaving only the STSPIN32G4 nFAULT (BKIN, PE15) active.
+   * Use a current-limited supply while this is in place. */
+//  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E);
+  /* Test B: disable STSPIN32G4 nFAULT instead, keep the comparators active */
+  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);
+
+  /* TEMPORARY VCC UVLO TEST - remove after testing.
+   * Same 12 V VCC setting as MCboot, but stop VCC undervoltage from being
+   * reported on nFAULT. The STSPIN32G4 still turns its gates off during VCC
+   * UVLO; it just no longer trips the TIM1 break. If the over-current faults
+   * disappear, VCC dipping during the boot-cap charge is the cause.
+   * Check g4_vcc_test_status (0 = OK) and g4_vcc_cfg.useNFAULT (should be 0). */
+  g4_vcc_test_status = STSPIN32G4_setVCC(&HdlSTSPING4,
+                                         (STSPIN32G4_confVCC){.voltage = _12V,
+                                                              .useNFAULT = false,
+                                                              .useREADY = false});
+  (void)STSPIN32G4_getVCC(&HdlSTSPING4, &g4_vcc_cfg);
 
   qd_f_t open_loop_current = {
      .q = 0.0f,
@@ -180,6 +225,22 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+    /* DEBUG_LED 2 Hz blink = main loop and SysTick both running */
+    static uint32_t led_tick = 0U;
+    if ((HAL_GetTick() - led_tick) >= 250U)
+    {
+      led_tick = HAL_GetTick();
+      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    }
+
+    /* Read the STSPIN32G4 status register over I2C every 100 ms */
+    static uint32_t g4_status_tick = 0U;
+    if ((HAL_GetTick() - g4_status_tick) >= 100U)
+    {
+      g4_status_tick = HAL_GetTick();
+      (void)STSPIN32G4_getStatus(&HdlSTSPING4, &g4_status);
+    }
   }
   /* USER CODE END 3 */
 }

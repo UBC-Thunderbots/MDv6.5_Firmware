@@ -55,3 +55,7 @@ EVSPIN32G4_encoder.settings
 # Project generated in a separate folder by MC Workbench when using
 # EVSPIN32G4_encoder.stwb6.
 MDv6.5_Firmware/Official_MD65_Proj/
+
+# CubeIDE build output
+Official_MD65_Proj/STM32CubeIDE/Debug/
+Official_MD65_Proj/STM32CubeIDE/Release/
