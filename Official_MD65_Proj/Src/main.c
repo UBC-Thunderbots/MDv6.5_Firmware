@@ -199,7 +199,7 @@ int main(void)
    * Use a current-limited supply while this is in place. */
 //  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E);
   /* Test B: disable STSPIN32G4 nFAULT instead, keep the comparators active */
-  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);
+//  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);
 
   /* TEMPORARY VCC UVLO TEST - remove after testing.
    * Same 12 V VCC setting as MCboot, but stop VCC undervoltage from being
@@ -207,28 +207,22 @@ int main(void)
    * UVLO; it just no longer trips the TIM1 break. If the over-current faults
    * disappear, VCC dipping during the boot-cap charge is the cause.
    * Check g4_vcc_test_status (0 = OK) and g4_vcc_cfg.useNFAULT (should be 0). */
-  g4_vcc_test_status = STSPIN32G4_setVCC(&HdlSTSPING4,
-                                         (STSPIN32G4_confVCC){.voltage = _12V,
-                                                              .useNFAULT = false,
-                                                              .useREADY = false});
-  (void)STSPIN32G4_getVCC(&HdlSTSPING4, &g4_vcc_cfg);
+//  g4_vcc_test_status = STSPIN32G4_setVCC(&HdlSTSPING4,
+//                                         (STSPIN32G4_confVCC){.voltage = _12V,
+//                                                              .useNFAULT = false,
+//                                                              .useREADY = false});
+//  (void)STSPIN32G4_getVCC(&HdlSTSPING4, &g4_vcc_cfg);
 
-  qd_f_t open_loop_current = {
-     .q = 0.0f,
-     .d = 0.5f
-   };
+  /* Closed-loop speed control with the encoder.
+   * The ramp is buffered while IDLE and executed once the encoder alignment
+   * (FINAL_I_ALIGNMENT_A for M1_ALIGNMENT_DURATION) has finished and the
+   * state machine enters RUN. Keep the target speed low for the first tests. */
+  MC_ProgramSpeedRampMotor1_F(300.0f, 2000U);
+  (void)MC_StartMotor1();
 
-   MCI_SetOpenLoopCurrentMode(pMCI[M1]);
-   MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
-   MC_SetCurrentReferenceMotor1_F(open_loop_current);
-   (void)MC_StartMotor1();
-
-   HAL_Delay(500U);
-
-   open_loop_current.q = 0.5f;
-   open_loop_current.d = 0.0f;
-   MC_SetCurrentReferenceMotor1_F(open_loop_current);
-   MC_ProgramSpeedRampMotor1_F(1200.0f, 1000U);
+  HAL_Delay(5000U);
+  MC_ProgramSpeedRampMotor1_F(-100.0f, 0U);
+  (void)MC_StartMotor1();
 
   /* USER CODE END 2 */
 
