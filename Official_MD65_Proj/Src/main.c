@@ -146,14 +146,16 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM4_Init();
   MX_USART1_UART_Init();
-  MX_MotorControl_Init();
+
   MX_FDCAN1_Init();
   MX_SPI1_Init();
-
+  MX_MotorControl_Init();
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
+  //OPEN LOOP CODE
+ /*
   qd_f_t open_loop_current = {
      .q = 0.0f,
      .d = 0.5f
@@ -170,6 +172,30 @@ int main(void)
    open_loop_current.d = 0.0f;
    MC_SetCurrentReferenceMotor1_F(open_loop_current);
    MC_ProgramSpeedRampMotor1_F(1200.0f, 1000U);
+	*/
+
+
+
+  /* Disable all overcurrent break sources for testing - USE CURRENT-LIMITED SUPPLY */
+  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);                                        /* nFAULT */
+  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E); /* comparators */
+
+  //CLOSED LOOP CODE
+  MCI_SetSpeedMode(pMCI[M1]);
+   MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
+   (void)MC_StartMotor1();
+
+   HAL_Delay(1000U);
+   MC_ProgramSpeedRampMotor1_F(100.0f, 3000U);
+
+   HAL_Delay(5000U);
+   MC_ProgramSpeedRampMotor1_F(-100.0f, 3000U);
+
+   HAL_Delay(5000U);
+   MC_ProgramSpeedRampMotor1_F(-1000.0f, 3000U);
+
+   HAL_Delay(20000U);
+   MC_StopMotor1();
 
   /* USER CODE END 2 */
 
