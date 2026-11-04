@@ -36,6 +36,11 @@
 *.elf
 *.mk
 
+# Build artifacts
+*.su
+*.list
+*.map
+
 .DS_Store
 
 .cache
