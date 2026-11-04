@@ -154,12 +154,15 @@ int main(void)
   led.Pull  = GPIO_NOPULL;
   led.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &led);
-  for (uint32_t i = 0U; i < 6U; i++)
+  for (uint32_t i = 0U; i < 20U; i++)
   {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
     HAL_Delay(100U);
   }
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+
+  //delay to test
+  HAL_Delay(3000U);
 
   /* USER CODE END SysInit */
 
