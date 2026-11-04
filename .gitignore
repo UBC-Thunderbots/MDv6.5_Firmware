@@ -40,6 +40,8 @@
 *.su
 *.list
 *.map
+*.launch
+**/Debug/makefile
 
 .DS_Store
 
