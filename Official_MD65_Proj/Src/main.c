@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "interface.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -155,33 +155,33 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   //OPEN LOOP CODE
- /*
-  qd_f_t open_loop_current = {
-     .q = 0.0f,
-     .d = 0.5f
-   };
 
-   MCI_SetOpenLoopCurrentMode(pMCI[M1]);
-   MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
-   MC_SetCurrentReferenceMotor1_F(open_loop_current);
-   (void)MC_StartMotor1();
-
-   HAL_Delay(500U);
-
-   open_loop_current.q = 0.5f;
-   open_loop_current.d = 0.0f;
-   MC_SetCurrentReferenceMotor1_F(open_loop_current);
-   MC_ProgramSpeedRampMotor1_F(1200.0f, 1000U);
-	*/
-
+//  qd_f_t open_loop_current = {
+//     .q = 0.0f,
+//     .d = 0.5f
+//   };
+//
+//   MCI_SetOpenLoopCurrentMode(pMCI[M1]);
+//   MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
+//   MC_SetCurrentReferenceMotor1_F(open_loop_current);
+//   (void)MC_StartMotor1();
+//
+//   HAL_Delay(500U);
+//
+//   open_loop_current.q = 0.5f;
+//   open_loop_current.d = 0.0f;
+//   MC_SetCurrentReferenceMotor1_F(open_loop_current);
+//   MC_ProgramSpeedRampMotor1_F(1200.0f, 1000U);
 
 
+
+/*
   /* Disable all overcurrent break sources for testing - USE CURRENT-LIMITED SUPPLY */
   CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);                                        /* nFAULT */
   CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E); /* comparators */
 
   //CLOSED LOOP CODE
-  MCI_SetSpeedMode(pMCI[M1]);
+   MCI_SetSpeedMode(pMCI[M1]);
    MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
    (void)MC_StartMotor1();
 
@@ -196,6 +196,7 @@ int main(void)
 
    HAL_Delay(20000U);
    MC_StopMotor1();
+
 
   /* USER CODE END 2 */
 
@@ -654,15 +655,15 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.AutoRetransmission = DISABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
-  hfdcan1.Init.NominalPrescaler = 16;
-  hfdcan1.Init.NominalSyncJumpWidth = 1;
-  hfdcan1.Init.NominalTimeSeg1 = 1;
-  hfdcan1.Init.NominalTimeSeg2 = 1;
+  hfdcan1.Init.NominalPrescaler = 10;
+  hfdcan1.Init.NominalSyncJumpWidth = 4;
+  hfdcan1.Init.NominalTimeSeg1 = 12;
+  hfdcan1.Init.NominalTimeSeg2 = 4;
   hfdcan1.Init.DataPrescaler = 1;
   hfdcan1.Init.DataSyncJumpWidth = 1;
   hfdcan1.Init.DataTimeSeg1 = 1;
   hfdcan1.Init.DataTimeSeg2 = 1;
-  hfdcan1.Init.StdFiltersNbr = 0;
+  hfdcan1.Init.StdFiltersNbr = 1;
   hfdcan1.Init.ExtFiltersNbr = 0;
   hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
