@@ -41,9 +41,19 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Src/aspep.c</locationURI>
 		</link>
 		<link>
+			<name>Application/User/crc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Src/crc.c</locationURI>
+		</link>
+		<link>
 			<name>Application/User/hf_registers.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Src/hf_registers.c</locationURI>
+		</link>
+		<link>
+			<name>Application/User/interface.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Src/interface.c</locationURI>
 		</link>
 		<link>
 			<name>Application/User/main.c</name>

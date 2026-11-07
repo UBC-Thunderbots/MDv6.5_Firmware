@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "interface.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -146,21 +146,6 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
-  /* DEBUG_LED (PC13): 3 quick flashes = code started, LED works */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  GPIO_InitTypeDef led = {0};
-  led.Pin   = GPIO_PIN_13;
-  led.Mode  = GPIO_MODE_OUTPUT_PP;
-  led.Pull  = GPIO_NOPULL;
-  led.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &led);
-  for (uint32_t i = 0U; i < 6U; i++)
-  {
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    HAL_Delay(100U);
-  }
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -191,37 +176,8 @@ int main(void)
   /* DEBUG_LED solid on = got past MX_NVIC_Init into the motor code */
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 
-  /* TEMPORARY OCP ISOLATION TEST - remove after testing.
-   * Test A: disable the COMP1/2/4 over-current comparators as TIM1 break
-   * sources, leaving only the STSPIN32G4 nFAULT (BKIN, PE15) active.
-   * Use a current-limited supply while this is in place. */
-//  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E);
-  /* Test B: disable STSPIN32G4 nFAULT instead, keep the comparators active */
-//  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);
-
-  /* TEMPORARY VCC UVLO TEST - remove after testing.
-   * Same 12 V VCC setting as MCboot, but stop VCC undervoltage from being
-   * reported on nFAULT. The STSPIN32G4 still turns its gates off during VCC
-   * UVLO; it just no longer trips the TIM1 break. If the over-current faults
-   * disappear, VCC dipping during the boot-cap charge is the cause.
-   * Check g4_vcc_test_status (0 = OK) and g4_vcc_cfg.useNFAULT (should be 0). */
-//  g4_vcc_test_status = STSPIN32G4_setVCC(&HdlSTSPING4,
-//                                         (STSPIN32G4_confVCC){.voltage = _12V,
-//                                                              .useNFAULT = false,
-//                                                              .useREADY = false});
-//  (void)STSPIN32G4_getVCC(&HdlSTSPING4, &g4_vcc_cfg);
-
-  /* Closed-loop speed control with the encoder.
-   * The ramp is buffered while IDLE and executed once the encoder alignment
-   * (FINAL_I_ALIGNMENT_A for M1_ALIGNMENT_DURATION) has finished and the
-   * state machine enters RUN. Keep the target speed low for the first tests. */
-  MC_ProgramSpeedRampMotor1_F(300.0f, 2000U);
-  (void)MC_StartMotor1();
-
-  HAL_Delay(5000U);
-  MC_ProgramSpeedRampMotor1_F(-100.0f, 0U);
-  (void)MC_StartMotor1();
-
+  Interface_Init();
+  Interface_Loop();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -231,56 +187,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-    /* DEBUG_LED 2 Hz blink = main loop and SysTick both running */
-    static uint32_t led_tick = 0U;
-    if ((HAL_GetTick() - led_tick) >= 250U)
-    {
-      led_tick = HAL_GetTick();
-      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    }
-
-    /* Read the STSPIN32G4 status register over I2C every 100 ms */
-    static uint32_t g4_status_tick = 0U;
-    if ((HAL_GetTick() - g4_status_tick) >= 100U)
-    {
-      g4_status_tick = HAL_GetTick();
-      (void)STSPIN32G4_getStatus(&HdlSTSPING4, &g4_status);
-    }
-
-    /* Compare encoder direction with the open-loop (virtual sensor) direction every 100 ms */
-    static uint32_t enc_tick = 0U;
-    if ((HAL_GetTick() - enc_tick) >= 100U)
-    {
-      enc_tick = HAL_GetTick();
-      ol_speed_01hz    = SPD_GetAvrgMecSpeedUnit(&VirtualSpeedSensorM1._Super);
-      enc_speed_01hz   = SPD_GetAvrgMecSpeedUnit(&ENCODER_M1._Super);
-      enc_tim_cnt      = ENCODER_M1.TIMx->CNT;
-      enc_tim_dir_down = (uint8_t)((ENCODER_M1.TIMx->CR1 & TIM_CR1_DIR) != 0U);
-
-      /* Only judge above ~60 rpm mechanical (10 Hz = 100 x 0.1 Hz) so noise near zero is ignored */
-      if ((ol_speed_01hz > 100) || (ol_speed_01hz < -100))
-      {
-        enc_ratio_pct = (int16_t)(((int32_t)enc_speed_01hz * 100) / ol_speed_01hz);
-        if (enc_ratio_pct > 50)
-        {
-          enc_dir = 1;
-        }
-        else if (enc_ratio_pct < -50)
-        {
-          enc_dir = -1;
-        }
-        else
-        {
-          enc_dir = 0;
-        }
-      }
-      else
-      {
-        enc_ratio_pct = 0;
-        enc_dir = 0;
-      }
-    }
   }
   /* USER CODE END 3 */
 }
