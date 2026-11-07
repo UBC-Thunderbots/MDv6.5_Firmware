@@ -40,21 +40,17 @@
 
 .cache
 
-EVSPIN32G4_encoder/STM32CubeIDE/.settings/
-EVSPIN32G4_encoder/STM32CubeIDE/.metadata/
-EVSPIN32G4_encoder/STM32CubeIDE/Debug/
-EVSPIN32G4_encoder/STM32CubeIDE/Release/
+Official_MD65_Proj/STM32CubeIDE/.settings/
+Official_MD65_Proj/STM32CubeIDE/.metadata/
+Official_MD65_Proj/STM32CubeIDE/Debug/
+Official_MD65_Proj/STM32CubeIDE/Release/
 
 .settings
 
-EVSPIN32G4_encoder.log
-EVSPIN32G4_encoder.ioc.bak
-EVSPIN32G4_encoder.ioc.wb
-EVSPIN32G4_encoder.settings
-
-# Project generated in a separate folder by MC Workbench when using
-# EVSPIN32G4_encoder.stwb6.
-MDv6.5_Firmware/Official_MD65_Proj/
+Official_MD65_Proj.log
+Official_MD65_Proj.ioc.bak
+Official_MD65_Proj.ioc.wb
+Official_MD65_Proj.settings
 
 # CubeIDE build output
 Official_MD65_Proj/STM32CubeIDE/Debug/
