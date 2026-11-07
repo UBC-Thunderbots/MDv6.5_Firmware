@@ -22,7 +22,7 @@
 #define MD_ID 				1
 #define CAN_RX_ID 			(0x100 + MD_ID)
 #define CAN_TX_ID 			(0x200 + MD_ID)
-#define CAN_DATA_LENGTH 	8
+#define MSG_DATA_LENGTH 	8
 
 //OPCODES
 typedef enum {

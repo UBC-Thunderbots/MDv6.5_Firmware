@@ -154,6 +154,11 @@ int main(void)
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
+  //initzation interafce1
+ // Interface_Init();
+
+
+
   //OPEN LOOP CODE
 
 //  qd_f_t open_loop_current = {
@@ -175,7 +180,7 @@ int main(void)
 
 
 
-/*
+
   /* Disable all overcurrent break sources for testing - USE CURRENT-LIMITED SUPPLY */
   CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);                                        /* nFAULT */
   CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E); /* comparators */
@@ -188,14 +193,14 @@ int main(void)
    HAL_Delay(1000U);
    MC_ProgramSpeedRampMotor1_F(100.0f, 3000U);
 
-   HAL_Delay(5000U);
+   HAL_Delay(2000U);
    MC_ProgramSpeedRampMotor1_F(-100.0f, 3000U);
 
-   HAL_Delay(5000U);
+   HAL_Delay(2000U);
    MC_ProgramSpeedRampMotor1_F(-1000.0f, 3000U);
 
-   HAL_Delay(20000U);
-   MC_StopMotor1();
+ //  HAL_Delay(20000U);
+  // MC_StopMotor1();
 
 
   /* USER CODE END 2 */
@@ -205,6 +210,37 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
+    // TX test - burst of 10 frames, then 3s rest
+//    FDCAN_TxHeaderTypeDef txHeader;
+//    txHeader.Identifier = CAN_RX_ID;  // 0x101 - matches our RX filter
+//    txHeader.IdType = FDCAN_STANDARD_ID;
+//    txHeader.TxFrameType = FDCAN_DATA_FRAME;
+//    txHeader.DataLength = FDCAN_DLC_BYTES_8;
+//    txHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+//    txHeader.BitRateSwitch = FDCAN_BRS_OFF;
+//    txHeader.FDFormat = FDCAN_CLASSIC_CAN;
+//    txHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//    txHeader.MessageMarker = 0;
+//
+//    uint8_t data[8] = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00, 0x00, 0x00};
+//
+//    // Loopback test: send a frame, then check if we receive it back
+//    HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &txHeader, data);
+//    HAL_Delay(10);
+//
+//    if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0) > 0) {
+//      FDCAN_RxHeaderTypeDef rxHeader;
+//      uint8_t rxData[8];
+//      HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &rxHeader, rxData);
+//      // Slow blink: loopback works!
+//      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+//      HAL_Delay(500);
+//    } else {
+//      // Fast blink: loopback failed
+//      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+//      HAL_Delay(100);
+//    }
 
     /* USER CODE BEGIN 3 */
   }
@@ -1121,7 +1157,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GD_READY_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
-
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
