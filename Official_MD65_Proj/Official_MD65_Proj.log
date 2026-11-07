@@ -904,3 +904,4 @@ Started STM32CubeMX for final c-code generation
 2026-10-31 14:10:02,455 DEBUG [LineInfo_to_exitCode.log_LineInfo] 2026-10-31 14:10:02,455 [INFO] UserAuth:487 - Internet connection configuration mode: 1
 2026-10-31 14:10:02,865 DEBUG [LineInfo_to_exitCode.log_LineInfo] 2026-10-31 14:10:02,865 [INFO] WebApp:403 - JxBrowser engine has been closed 
 2026-10-31 14:10:02,865 DEBUG [LineInfo_to_exitCode.log_LineInfo] 2026-10-31 14:10:02,865 [INFO] WebApp:750 - Close the Jxbrowser engine manually
+2026-11-01 19:19:06,929 DEBUG [IOCDialogController.lambda$onClose$8] IOCGenerationDialog exists with return code 1
