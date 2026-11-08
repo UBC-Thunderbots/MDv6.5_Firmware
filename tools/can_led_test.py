@@ -32,7 +32,7 @@ def main():
             bus.send(msg)
             count += 1
             print(f"Sent frame #{count}")
-            time.sleep(1.0)
+            time.sleep(3.0)
     except KeyboardInterrupt:
         print("\nStopped.")
     finally:

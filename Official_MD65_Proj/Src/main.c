@@ -149,13 +149,13 @@ int main(void)
 
   MX_FDCAN1_Init();
   MX_SPI1_Init();
-  MX_MotorControl_Init();
+ // MX_MotorControl_Init();
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
   //initzation interafce1
- // Interface_Init();
+  Interface_Init();
 
 
 
@@ -182,22 +182,22 @@ int main(void)
 
 
   /* Disable all overcurrent break sources for testing - USE CURRENT-LIMITED SUPPLY */
-  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);                                        /* nFAULT */
-  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E); /* comparators */
-
-  //CLOSED LOOP CODE
-   MCI_SetSpeedMode(pMCI[M1]);
-   MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
-   (void)MC_StartMotor1();
-
-   HAL_Delay(1000U);
-   MC_ProgramSpeedRampMotor1_F(100.0f, 3000U);
-
-   HAL_Delay(2000U);
-   MC_ProgramSpeedRampMotor1_F(-100.0f, 3000U);
-
-   HAL_Delay(2000U);
-   MC_ProgramSpeedRampMotor1_F(-1000.0f, 3000U);
+//  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);                                        /* nFAULT */
+//  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E); /* comparators */
+//
+//  //CLOSED LOOP CODE
+//   MCI_SetSpeedMode(pMCI[M1]);
+//   MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
+//   (void)MC_StartMotor1();
+//
+//   HAL_Delay(1000U);
+//   MC_ProgramSpeedRampMotor1_F(100.0f, 3000U);
+//
+//   HAL_Delay(2000U);
+//   MC_ProgramSpeedRampMotor1_F(-100.0f, 3000U);
+//
+//   HAL_Delay(2000U);
+//   MC_ProgramSpeedRampMotor1_F(-1000.0f, 3000U);
 
  //  HAL_Delay(20000U);
   // MC_StopMotor1();
@@ -211,36 +211,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-    // TX test - burst of 10 frames, then 3s rest
-//    FDCAN_TxHeaderTypeDef txHeader;
-//    txHeader.Identifier = CAN_RX_ID;  // 0x101 - matches our RX filter
-//    txHeader.IdType = FDCAN_STANDARD_ID;
-//    txHeader.TxFrameType = FDCAN_DATA_FRAME;
-//    txHeader.DataLength = FDCAN_DLC_BYTES_8;
-//    txHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-//    txHeader.BitRateSwitch = FDCAN_BRS_OFF;
-//    txHeader.FDFormat = FDCAN_CLASSIC_CAN;
-//    txHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-//    txHeader.MessageMarker = 0;
-//
-//    uint8_t data[8] = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00, 0x00, 0x00};
-//
-//    // Loopback test: send a frame, then check if we receive it back
-//    HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &txHeader, data);
-//    HAL_Delay(10);
-//
-//    if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0) > 0) {
-//      FDCAN_RxHeaderTypeDef rxHeader;
-//      uint8_t rxData[8];
-//      HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &rxHeader, rxData);
-//      // Slow blink: loopback works!
-//      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-//      HAL_Delay(500);
-//    } else {
-//      // Fast blink: loopback failed
-//      HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-//      HAL_Delay(100);
-//    }
+    Interface_Poll();
 
     /* USER CODE BEGIN 3 */
   }
@@ -688,7 +659,7 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
   hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
   hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
-  hfdcan1.Init.AutoRetransmission = DISABLE;
+  hfdcan1.Init.AutoRetransmission = ENABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
   hfdcan1.Init.NominalPrescaler = 10;
