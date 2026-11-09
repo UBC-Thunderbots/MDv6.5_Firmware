@@ -32,7 +32,6 @@
 #include "pwm_common.h"
 #include "mc_tasks.h"
 #include "parameters_conversion.h"
-#include "mcp_config.h"
 #include "mc_app_hooks.h"
 
 /* USER CODE BEGIN Includes */

@@ -118,7 +118,7 @@ typedef struct
 
 /* MCP_Flag definition */
 #define FLAG_MCP_OVER_STLINK       0U
-#define FLAG_MCP_OVER_UARTA        (1U << 1U)
+#define FLAG_MCP_OVER_UARTA        0U
 #define FLAG_MCP_OVER_UARTB        0U
 
 #define configurationFlag1_M1     (VBUS_SENSING_FLAG)

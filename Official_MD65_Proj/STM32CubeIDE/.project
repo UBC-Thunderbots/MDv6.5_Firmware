@@ -36,19 +36,9 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Official_MD65_Proj.ioc</locationURI>
 		</link>
 		<link>
-			<name>Application/User/aspep.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Src/aspep.c</locationURI>
-		</link>
-		<link>
 			<name>Application/User/crc.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Src/crc.c</locationURI>
-		</link>
-		<link>
-			<name>Application/User/hf_registers.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Src/hf_registers.c</locationURI>
 		</link>
 		<link>
 			<name>Application/User/interface.c</name>
@@ -111,16 +101,6 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Src/mc_tasks_foc.c</locationURI>
 		</link>
 		<link>
-			<name>Application/User/mcp.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Src/mcp.c</locationURI>
-		</link>
-		<link>
-			<name>Application/User/mcp_config.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Src/mcp_config.c</locationURI>
-		</link>
-		<link>
 			<name>Application/User/motorcontrol.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Src/motorcontrol.c</locationURI>
@@ -164,16 +144,6 @@
 			<name>Application/User/stm32g4xx_mc_it.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Src/stm32g4xx_mc_it.c</locationURI>
-		</link>
-		<link>
-			<name>Application/User/sync_registers.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Src/sync_registers.c</locationURI>
-		</link>
-		<link>
-			<name>Application/User/usart_aspep_driver.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Src/usart_aspep_driver.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/CMSIS/system_stm32g4xx.c</name>
@@ -349,11 +319,6 @@
 			<name>Middlewares/MotorControl/encoder_speed_pos_fdbk.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/MCSDK_v6.4.1-Full/MotorControl/MCSDK/MCLib/Any/Src/encoder_speed_pos_fdbk.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/MotorControl/mcpa.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/MCSDK_v6.4.1-Full/MotorControl/MCSDK/MCLib/Any/Src/mcpa.c</locationURI>
 		</link>
 		<link>
 			<name>Middlewares/MotorControl/ntc_temperature_sensor.c</name>

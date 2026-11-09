@@ -47,11 +47,7 @@ Official_MD65_Proj/STM32CubeIDE/Release/
 
 .settings
 
-Official_MD65_Proj.log
-Official_MD65_Proj.ioc.bak
-Official_MD65_Proj.ioc.wb
-Official_MD65_Proj.settings
-
-# CubeIDE build output
-Official_MD65_Proj/STM32CubeIDE/Debug/
-Official_MD65_Proj/STM32CubeIDE/Release/
+Official_MD65_Proj/Official_MD65_Proj.log
+Official_MD65_Proj/Official_MD65_Proj.ioc.bak
+Official_MD65_Proj/Official_MD65_Proj.ioc.wb
+Official_MD65_Proj/Official_MD65_Proj.settings

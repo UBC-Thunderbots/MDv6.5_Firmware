@@ -21,7 +21,6 @@
 
 #include "mc_type.h"
 #include "mc_configuration_registers.h"
-#include "register_interface.h"
 #include "parameters_conversion.h"
 
 #define FIRMWARE_NAME_STR "ST MC SDK\tVer.6.4.1"
@@ -35,7 +34,7 @@ const GlobalConfig_reg_t globalConfig_reg =
   .SDKVersion     = SDK_VERSION,
   .MotorNumber    =  1 ,
   .MCP_Flag       = FLAG_MCP_OVER_STLINK + FLAG_MCP_OVER_UARTA + FLAG_MCP_OVER_UARTB,
-  .MCPA_UARTA_LOG = 10, /* Used by Motor Pilot to detect data log enabled. */
+  .MCPA_UARTA_LOG = 0, /* Used by Motor Pilot to detect data log enabled. */
   .MCPA_UARTB_LOG = 0,
   .MCPA_STLNK_LOG = 0,
 };
