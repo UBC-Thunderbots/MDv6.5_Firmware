@@ -1504,7 +1504,7 @@
           },
           "cutOffFrequency": "Number.NaN",
           "useMTPA": false,
-          "feedForward": false,
+          "feedForward": true,
           "MTPATarget": "Number.NaN"
         },
         "speedReg": {

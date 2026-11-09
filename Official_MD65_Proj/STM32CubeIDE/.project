@@ -321,6 +321,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/MCSDK_v6.4.1-Full/MotorControl/MCSDK/MCLib/Any/Src/encoder_speed_pos_fdbk.c</locationURI>
 		</link>
 		<link>
+			<name>Middlewares/MotorControl/feed_forward_ctrl.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MCSDK_v6.4.1-Full/MotorControl/MCSDK/MCLib/Any/Src/feed_forward_ctrl.c</locationURI>
+		</link>
+		<link>
 			<name>Middlewares/MotorControl/ntc_temperature_sensor.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/MCSDK_v6.4.1-Full/MotorControl/MCSDK/MCLib/Any/Src/ntc_temperature_sensor.c</locationURI>

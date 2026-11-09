@@ -27,6 +27,7 @@
 #include "revup_ctrl.h"
 #include "mc_config_common.h"
 #include "pwm_curr_fdbk.h"
+#include "feed_forward_ctrl.h"
 #include "pqd_motor_power_measurement.h"
 #include "r3_2_g4xx_pwm_curr_fdbk.h"
 #include "open_loop.h"
@@ -45,12 +46,14 @@ extern PQD_MotorPowMeas_Handle_t *pPQD_MotorPowMeasM1;
 
 extern CircleLimitation_Handle_t CircleLimitationM1;
 extern RampExtMngr_Handle_t RampExtMngrHFParamsM1;
+extern FF_Handle_t FF_M1;
 extern OpenLoop_Handle_t OpenLoop_ParamsM1;
 extern RampExtMngr_Handle_t *pREMNG[NBR_OF_MOTORS];
 extern FOCVars_t FOCVars[NBR_OF_MOTORS];
 extern PID_Handle_t *pPIDIq[NBR_OF_MOTORS];
 extern PID_Handle_t *pPIDId[NBR_OF_MOTORS];
 extern PQD_MotorPowMeas_Handle_t *pMPM[NBR_OF_MOTORS];
+extern FF_Handle_t *pFF[NBR_OF_MOTORS];
 extern MCI_Handle_t* pMCI[NBR_OF_MOTORS];
 extern SpeednTorqCtrl_Handle_t *pSTC[NBR_OF_MOTORS];
 extern MCI_Handle_t Mci[NBR_OF_MOTORS];
