@@ -69,25 +69,6 @@ TIM_HandleTypeDef htim4;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-/* STSPIN32G4 status register snapshot, refreshed from the main loop - watch in debugger */
-STSPIN32G4_statusRegTypeDef g4_status;
-/* TEMPORARY VCC UVLO test results - watch in debugger */
-STSPIN32G4_StatusTypeDef g4_vcc_test_status;
-STSPIN32G4_confVCC g4_vcc_cfg;
-
-/* Encoder direction check during open loop - watch in debugger.
- * Speeds are mechanical, in 0.1 Hz (SPEED_UNIT = U_01HZ), so 1200 rpm = 200.
- *   enc_dir  = +1 : encoder counts the same way as the open-loop angle (orientation OK)
- *   enc_dir  = -1 : encoder is reversed (swap encoder A/B, or swap two motor phases)
- *   enc_dir  =  0 : not determined yet (OL speed too low, or encoder not counting)
- *   enc_ratio_pct : enc speed / OL speed * 100, should be about +/-100 when the rotor
- *                   is in sync and M1_ENCODER_PPR / POLE_PAIR_NUM are correct */
-int16_t ol_speed_01hz;
-int16_t enc_speed_01hz;
-int8_t  enc_dir;
-int16_t enc_ratio_pct;
-uint32_t enc_tim_cnt;
-uint8_t enc_tim_dir_down;
 
 /* USER CODE END PV */
 
