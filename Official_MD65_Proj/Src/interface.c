@@ -311,6 +311,9 @@ static void PopulateTx_ResponseForCurrentType(uint8_t *tx, uint8_t seq)
     case SPEED_AND_SPEED_REF:
       PopulateTx_ResponseSpeedAndSpeedRef(tx, seq);
       break;
+    case MOTOR_STATUS:
+      PopulateTx_ResponseMotorStatus(tx, seq);
+      break;
   }
 }
 
@@ -635,6 +638,41 @@ void PopulateTx_ResponseSpeedAndSpeedRef(uint8_t *tx, uint8_t seq)
   tx[6] = (uint8_t)(motor_speed & 0xFF);
   tx[7] = (uint8_t)((motor_speed_ref >> 8) & 0xFF);
   tx[8] = (uint8_t)(motor_speed_ref & 0xFF);
+  tx[9] = CrcGenerateChecksum(tx, MESSAGE_SIZE - 1);
+}
+
+/**
+ * Populates the TX buffer with fields corresponding to the
+ * current motor state and state transitions.
+ *
+ *  +--------+---------------+----------+
+ *  |  State | State Transition |       |
+ *  +--------+---------------+----------+
+ *      1             2           3   4    
+ */
+void PopulateTx_ResponseMotorStatus(uint8_t *tx, uint8_t seq) {
+  const uint8_t motor_state = (uint8_t)MC_GetSTMStateMotor1();
+
+  uint8_t motor_state_transition_monitor = 0b0000'0000;
+
+  /** motor_state_transition_monitor can track up to 8 state
+   * transitions per byte. Mapped as follows in MSB0 format:
+   * MSB0: MOTOR_ALIGNMENT_DONE
+   * MSB1-7: unreserved; user can implement
+   */ 
+
+  # define MOTOR_ALIGNMENT_DONE_LATCH (1u << 7)
+
+  // check if motor is aligned
+  if (EAC_IsAligned(&EncAlignCtrlM1)) {
+    motor_state_transition_monitor |= MOTOR_ALIGNMENT_DONE_LATCH;
+  }
+
+  PopulateTxHeader(tx, seq, MOTOR_STATUS);
+  tx[5] = motor_state;
+  tx[6] = motor_state_transition_monitor;
+  tx[7] = 0;
+  tx[8] = 0;
   tx[9] = CrcGenerateChecksum(tx, MESSAGE_SIZE - 1);
 }
 

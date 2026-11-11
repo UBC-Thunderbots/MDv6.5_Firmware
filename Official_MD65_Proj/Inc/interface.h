@@ -34,6 +34,7 @@ typedef enum {
   IQ_AND_IQ_REF             = 0x05,
   ID_AND_ID_REF             = 0x06,
   SPEED_AND_SPEED_REF       = 0x07,
+  MOTOR_STATUS              = 0x08,
 } ResponseType_t;
 
 /**
