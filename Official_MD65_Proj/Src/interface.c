@@ -657,8 +657,8 @@ void PopulateTx_ResponseMotorStatus(uint8_t *tx, uint8_t seq) {
 
   /** motor_state_transition_monitor can track up to 8 state
    * transitions per byte. Mapped as follows in MSB0 format:
-   * MSB0: MOTOR_ALIGNMENT_DONE
-   * MSB1-7: unreserved; user can implement
+   * motor_state_controller_monitor[0]: MOTOR_ALIGNMENT_DONE
+   * motor_state_controller_monitor[1-7]: unreserved; user can implement
    */ 
 
   # define MOTOR_ALIGNMENT_DONE_LATCH (1u << 7)
