@@ -657,15 +657,15 @@ void PopulateTx_ResponseMotorStatus(uint8_t *tx, uint8_t seq) {
 
   /** motor_state_transition_monitor can track up to 8 state
    * transitions per byte. Mapped as follows in MSB0 format:
-   * motor_state_controller_monitor[0]: MOTOR_ALIGNMENT_DONE
+   * motor_state_controller_monitor[0]: motor_alignment_done_latch
    * motor_state_controller_monitor[1-7]: unreserved; user can implement
    */ 
 
-  # define MOTOR_ALIGNMENT_DONE_LATCH (1u << 7)
+  const uint8_t motor_alignment_done_latch = (1u << 7);
 
   // check if motor is aligned
   if (EAC_IsAligned(&EncAlignCtrlM1)) {
-    motor_state_transition_monitor |= MOTOR_ALIGNMENT_DONE_LATCH;
+    motor_state_transition_monitor |= motor_alignment_done_latch;
   }
 
   PopulateTxHeader(tx, seq, MOTOR_STATUS);
