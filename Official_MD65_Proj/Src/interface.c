@@ -662,7 +662,7 @@ void PopulateTx_ResponseMotorStatus(uint8_t *tx, uint8_t seq) {
    * motor_state_controller_monitor[2-7]: unreserved; user can implement
    */ 
 
-  const uint8_t motor_alignment_done_latch = (1u << 7);
+  const uint8_t motor_alignment_done_latch = 0x80;
 
   // check if motor is aligned
   if (EAC_IsAligned(&EncAlignCtrlM1)) {
