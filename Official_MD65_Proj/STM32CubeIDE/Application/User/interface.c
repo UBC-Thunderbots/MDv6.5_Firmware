@@ -15,6 +15,7 @@ static ResponseType_t response_type = SPEED_AND_FAULTS; //look in interface.h
 static bool motor_enabled = false; 						//initial motor state!
 
 //function prototypes
+void processCommand(const uint8_t *rxData); 		 //process the message
 void setMotorEnabled(bool enabled);
 void ProcessRx_SetTargetSpeed(const uint8_t *rx);    //set target speed for motor
 void ProcessRx_SetTargetTorque(const uint8_t *rx);	 //set target torque for motor
@@ -23,7 +24,7 @@ void ProcessRx_SetPidTorqueKpKi(const uint8_t *rx);  //set kp and ki for TORQUE 
 void ProcessRx_SetPidFluxKpKi(const uint8_t *rx);	 //set kp and ki for FLUX PID controller
 void ProcessRx_SetPidSpeedKpKi(const uint8_t *rx);   //set kp and ki for SPEED PID controller
 void sendResponse(const uint8_t *txData);		 //send response back accorcing to response_type
-void configureResponse();
+void configureAndSendResponse();					 //configures the response message, then calls the sendRseponse() to send response.
 
 
 
@@ -61,7 +62,7 @@ void Interface_Poll(void){
 	uint8_t rxData[MSG_DATA_LENGTH]; //array for processing the data portion of the can mesaages
 
 
-	
+
 	//chekc recevie buffer. if greater than 1, than means message avaiable
 	if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0) > 0) {
 		//retreive from fifo0
@@ -69,37 +70,43 @@ void Interface_Poll(void){
 
 		//the first byte of the received payload (8 bytes total) is the opcode of message. the CAN message header is just ID, which determindes which board receives what message.
 		//process the message based on OPCODE (do what OPCODE tells us to)
-		switch((Opcode_t)rxData[0]){
-			case NO_OP:
-				break;
-			case SET_TARGET_SPEED:
-				ProcessRx_SetTargetSpeed(rxData);
-				break;
-			case SET_TARGET_TORQUE:
-				ProcessRx_SetTargetTorque(rxData);
-				break;
-			case SET_RESPONSE_TYPE:
-				ProcessRx_SetResponseType(rxData);
-				break;
-			case SET_PID_TORQUE_KP_KI:
-				ProcessRx_SetPidTorqueKpKi(rxData);
-				break;
-			case SET_PID_FLUX_KP_KI:
-				ProcessRx_SetPidFluxKpKi(rxData);
-				break;
-			case SET_PID_SPEED_KP_KI:
-				ProcessRx_SetPidSpeedKpKi(rxData);
-				break;
-			default:
-				break;
-		}
+		// }
 
 		//now repond..
-		configureResponse();
+		processCommand(rxData);
+		configureAndSendResponse();
 
 
 	}
 }
+
+void processCommand(const uint8_t *rxData){
+	switch((Opcode_t)rxData[0]){
+		case NO_OP:
+			break;
+		case SET_TARGET_SPEED:
+			ProcessRx_SetTargetSpeed(rxData);
+			break;
+		case SET_TARGET_TORQUE:
+			ProcessRx_SetTargetTorque(rxData);
+			break;
+		case SET_RESPONSE_TYPE:
+			ProcessRx_SetResponseType(rxData);
+			break;
+		case SET_PID_TORQUE_KP_KI:
+			ProcessRx_SetPidTorqueKpKi(rxData);
+			break;
+		case SET_PID_FLUX_KP_KI:
+			ProcessRx_SetPidFluxKpKi(rxData);
+			break;
+		case SET_PID_SPEED_KP_KI:
+			ProcessRx_SetPidSpeedKpKi(rxData);
+			break;
+		default:
+			break;
+	}
+}
+
 
 //enabled or disable motor
 void setMotorEnabled(bool enabled){
@@ -186,11 +193,13 @@ void sendResponse(const uint8_t *txData) {
   }
 
 //configure the response message
-void configureResponse(void){
+void configureAndSendResponse(void){
 	uint8_t txData[MSG_DATA_LENGTH];
 	memset(txData, 0, MSG_DATA_LENGTH);
 	txData[0] = (uint8_t)response_type;
-
+	
+	//based on the rseponse type, we configure bthe txDAta.
+	//use HAL lirbaries to read data...
 	switch (response_type) {
       	case SPEED_AND_FAULTS: {
     		int16_t speed = MC_GetMecSpeedAverageMotor1();
@@ -201,12 +210,69 @@ void configureResponse(void){
 			txData[4] = (uint8_t)(faults & 0xFF);
 			break;
       	}
+		case IQ_AND_ID:	{
+			qd_t iqd = MC_GetIqdMotor1();
+			txData[1] = (uint8_t)((iqd.q >> 8) & 0xFF);
+			txData[2] = (uint8_t)(iqd.q & 0xFF);
+			txData[3] = (uint8_t)((iqd.d >> 8) & 0xFF);
+			txData[4] = (uint8_t)(iqd.d & 0xFF);
+			break;
+		}
+		case VQ_AND_VD: {
+			qd_t vqd = MC_GetVqdMotor1();
+			txData[1] = (uint8_t)((vqd.q >> 8) & 0xFF);
+			txData[2] = (uint8_t)(vqd.q & 0xFF);
+			txData[3] = (uint8_t)((vqd.d >> 8) & 0xFF);
+			txData[4] = (uint8_t)(vqd.d & 0xFF);
+			break;
+		}
+		case PHASE_CURRENT_AND_VOLTAGE: {
+			int16_t phase_current = MC_GetPhaseCurrentAmplitudeMotor1();
+			int16_t phase_voltage = MC_GetPhaseVoltageAmplitudeMotor1();
+			txData[1] = (uint8_t)((phase_current >> 8) & 0xFF);
+			txData[2] = (uint8_t)(phase_current & 0xFF);
+			txData[3] = (uint8_t)((phase_voltage >> 8) & 0xFF);
+			txData[4] = (uint8_t)(phase_voltage & 0xFF);
+			break;
+		}
+		case IQ_AND_IQ_REF: {
+			qd_t iqd = MC_GetIqdMotor1();
+			qd_t iqd_ref = MC_GetIqdrefMotor1();
+			txData[1] = (uint8_t)((iqd.q >> 8) & 0xFF);
+			txData[2] = (uint8_t)(iqd.q & 0xFF);
+			txData[3] = (uint8_t)((iqd_ref.q >> 8) & 0xFF);
+			txData[4] = (uint8_t)(iqd_ref.q & 0xFF);
+			break;
+		}
+		case ID_AND_ID_REF: {
+			qd_t iqd = MC_GetIqdMotor1();
+			qd_t iqd_ref = MC_GetIqdrefMotor1();
+			txData[1] = (uint8_t)((iqd.d >> 8) & 0xFF);
+			txData[2] = (uint8_t)(iqd.d & 0xFF);
+			txData[3] = (uint8_t)((iqd_ref.d >> 8) & 0xFF);
+			txData[4] = (uint8_t)(iqd_ref.d & 0xFF);
+			break;
+		}
+		case SPEED_AND_SPEED_REF: {
+			int16_t speed = MC_GetMecSpeedAverageMotor1();
+			int16_t speed_ref = MC_GetMecSpeedReferenceMotor1();
+			txData[1] = (uint8_t)((speed >> 8) & 0xFF);
+			txData[2] = (uint8_t)(speed & 0xFF);
+			txData[3] = (uint8_t)((speed_ref >> 8) & 0xFF);
+			txData[4] = (uint8_t)(speed_ref & 0xFF);
+			break;
+		}
       	default:
         	break;
  	}
 
 	//now send reponse:
 	sendResponse(txData);
-
-	
 }
+
+
+
+
+
+//end
+
