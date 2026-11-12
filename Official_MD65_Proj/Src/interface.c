@@ -311,7 +311,7 @@ static void PopulateTx_ResponseForCurrentType(uint8_t *tx, uint8_t seq)
     case SPEED_AND_SPEED_REF:
       PopulateTx_ResponseSpeedAndSpeedRef(tx, seq);
       break;
-    case MOTOR_STATUS:
+    case MOTOR_STATE:
       PopulateTx_ResponseMotorStatus(tx, seq);
       break;
   }
@@ -669,7 +669,7 @@ void PopulateTx_ResponseMotorStatus(uint8_t *tx, uint8_t seq) {
     motor_state_transition_monitor |= motor_alignment_done_latch;
   }
 
-  PopulateTxHeader(tx, seq, MOTOR_STATUS);
+  PopulateTxHeader(tx, seq, MOTOR_STATE);
   tx[5] = motor_state;
   tx[6] = motor_state_transition_monitor;
   tx[7] = 0;
