@@ -86,6 +86,10 @@ typedef struct
   int16_t TorqueRefDefault;            /*!< Default motor torque reference. This value represents actually the Iq
                                             current reference expressed in digit. */
   int16_t IdrefDefault;                /*!< Default Id current reference expressed in digit. */
+  int16_t FFKa;                        /*!< Speed feedforward acceleration gain (raw, set over SPI). */
+  int16_t FFKv;                        /*!< Speed feedforward velocity gain (raw, set over SPI). */
+  int16_t FFKs;                        /*!< Speed feedforward static friction gain, in Iq digits (set over SPI). */
+  int16_t PrevTargetSpeed;             /*!< Target speed of the previous tick, for the acceleration term. */
 } SpeednTorqCtrl_Handle_t;
 
 /* Initializes all the object variables */

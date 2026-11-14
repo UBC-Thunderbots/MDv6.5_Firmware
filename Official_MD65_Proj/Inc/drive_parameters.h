@@ -93,6 +93,12 @@
 #define SPD_DIFFERENTIAL_TERM_ENABLING      DISABLE
 #define IQMAX_A                             9.5
 
+/* Speed feedforward (gains Ka, Kv, Ks are set over SPI, default 0 = disabled).
+ *   Iq_ff = Kv*target_speed/2^KV_DIV_LOG + Ka*(target_speed - prev_target_speed)/2^KA_DIV_LOG + Ks*sign(target_speed)
+ * target_speed is in SPEED_UNIT (0.1 Hz); Iq_ff and Ks are in Iq digits. */
+#define SPEED_FF_KV_DIV_LOG                 12
+#define SPEED_FF_KA_DIV_LOG                 8
+
 /* Default settings */
 #define DEFAULT_CONTROL_MODE                MCM_SPEED_MODE
 #define DEFAULT_TARGET_SPEED_RPM            0

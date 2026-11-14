@@ -26,6 +26,8 @@
 #include "speed_pos_fdbk.h"
 
 #include "mc_type.h"
+#include "drive_parameters.h"
+#include "parameters_conversion.h"
 
 #define CHECK_BOUNDARY
 
@@ -130,6 +132,7 @@ __weak void STC_Clear(SpeednTorqCtrl_Handle_t *pHandle)
     if (MCM_SPEED_MODE == pHandle->Mode)
     {
       PID_SetIntegralTerm(pHandle->PISpeed, 0);
+      pHandle->PrevTargetSpeed = 0;
     }
     else if (MCM_TORQUE_MODE == pHandle->Mode)
     {
@@ -454,6 +457,41 @@ __weak int16_t STC_CalcTorqueReference(SpeednTorqCtrl_Handle_t *pHandle)
       hMeasuredSpeed = SPD_GetAvrgMecSpeedUnit(pHandle->SPD);
       hError = hTargetSpeed - hMeasuredSpeed;
       hTorqueReference = PI_Controller(pHandle->PISpeed, (int32_t)hError);
+
+      /* Speed feedforward (Kv: viscous, Ka: acceleration of the reference, Ks: static friction) */
+      {
+        const int32_t accel = (int32_t)hTargetSpeed - (int32_t)pHandle->PrevTargetSpeed;
+        int32_t ff = (((int32_t)pHandle->FFKv * (int32_t)hTargetSpeed) / (1 << SPEED_FF_KV_DIV_LOG))
+                   + (((int32_t)pHandle->FFKa * accel) / (1 << SPEED_FF_KA_DIV_LOG));
+        if (hTargetSpeed > 0)
+        {
+          ff += pHandle->FFKs;
+        }
+        else if (hTargetSpeed < 0)
+        {
+          ff -= pHandle->FFKs;
+        }
+        else
+        {
+          /* No static friction term at zero target */
+        }
+        pHandle->PrevTargetSpeed = hTargetSpeed;
+
+        int32_t sum = (int32_t)hTorqueReference + ff;
+        if (sum > (int32_t)IQMAX)
+        {
+          sum = (int32_t)IQMAX;
+        }
+        else if (sum < -(int32_t)IQMAX)
+        {
+          sum = -(int32_t)IQMAX;
+        }
+        else
+        {
+          /* Within limits */
+        }
+        hTorqueReference = (int16_t)sum;
+      }
 
       pHandle->SpeedRefUnitExt = wCurrentReference;
       pHandle->TorqueRef = ((int32_t)hTorqueReference) * 65536;

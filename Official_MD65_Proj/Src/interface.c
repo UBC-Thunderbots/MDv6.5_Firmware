@@ -40,6 +40,7 @@ extern DMA_HandleTypeDef hdma_spi1_tx;
 extern PID_Handle_t PIDSpeedHandle_M1;
 extern PID_Handle_t PIDIqHandle_M1;
 extern PID_Handle_t PIDIdHandle_M1;
+extern SpeednTorqCtrl_Handle_t SpeednTorqCtrlM1;
 
 /* Protocol buffering -------------------------------------------------------*/
 
@@ -86,6 +87,8 @@ void ProcessRx_SetResponseType(const uint8_t *rx);
 void ProcessRx_SetPidTorqueKpKi(const uint8_t *rx);
 void ProcessRx_SetPidFluxKpKi(const uint8_t *rx);
 void ProcessRx_SetPidSpeedKpKi(const uint8_t *rx);
+void ProcessRx_SetSpeedFeedForwardKaKv(const uint8_t *rx);
+void ProcessRx_SetSpeedFeedForwardKs(const uint8_t *rx);
 
 void PopulateTx_ResponseSpeedAndFaults(uint8_t *tx, uint8_t seq);
 void PopulateTx_ResponseIqAndId(uint8_t *tx, uint8_t seq);
@@ -359,6 +362,12 @@ static void ProcessSpiFrame(const uint8_t *rx)
     case SET_PID_SPEED_KP_KI:
       ProcessRx_SetPidSpeedKpKi(rx);
       break;
+    case SET_SPEED_FEED_FORWARD_KA_KV:
+      ProcessRx_SetSpeedFeedForwardKaKv(rx);
+      break;
+    case SET_SPEED_FEED_FORWARD_KS:
+      ProcessRx_SetSpeedFeedForwardKs(rx);
+      break;
   }
 
   uint8_t tx[MESSAGE_SIZE];
@@ -484,6 +493,35 @@ void ProcessRx_SetPidSpeedKpKi(const uint8_t *rx)
 
   PID_SetKP(&PIDSpeedHandle_M1, kp);
   PID_SetKI(&PIDSpeedHandle_M1, ki);
+}
+
+/**
+ * Processes the received SPI frame to update the Ka and Kv speed
+ * feedforward gains (acceleration and velocity).
+ *
+ *  +----------------+---------------+
+ *  |       Ka       |       Kv      |
+ *  +----------------+---------------+
+ *      1       2        3       4
+ */
+void ProcessRx_SetSpeedFeedForwardKaKv(const uint8_t *rx)
+{
+  SpeednTorqCtrlM1.FFKa = (int16_t)(((uint16_t)rx[5] << 8) | rx[6]);
+  SpeednTorqCtrlM1.FFKv = (int16_t)(((uint16_t)rx[7] << 8) | rx[8]);
+}
+
+/**
+ * Processes the received SPI frame to update the Ks speed feedforward
+ * gain (static friction, in Iq digits).
+ *
+ *  +----------------+
+ *  |       Ks       |
+ *  +----------------+
+ *      1       2
+ */
+void ProcessRx_SetSpeedFeedForwardKs(const uint8_t *rx)
+{
+  SpeednTorqCtrlM1.FFKs = (int16_t)(((uint16_t)rx[5] << 8) | rx[6]);
 }
 
 /**
