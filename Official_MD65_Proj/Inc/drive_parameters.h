@@ -93,6 +93,14 @@
 #define SPD_DIFFERENTIAL_TERM_ENABLING      DISABLE
 #define IQMAX_A                             9.5
 
+/* I^2*t thermal limit on the speed-loop Iq reference.
+ * Heat accumulates at (I^2 - I2T_CONT_CURRENT_A^2) per second. When the budget is full,
+ * Iq is clamped to I2T_CONT_CURRENT_A until the budget drains to I2T_RESUME_RATIO.
+ * Burst time at 9.5 A = I2T_LIMIT_A2S / (9.5^2 - 3.5^2) = ~3 s. Tune on hardware. */
+#define I2T_CONT_CURRENT_A                  3.5f
+#define I2T_LIMIT_A2S                       234.0f
+#define I2T_RESUME_RATIO                    0.5f
+
 /* Default settings */
 #define DEFAULT_CONTROL_MODE                MCM_SPEED_MODE
 #define DEFAULT_TARGET_SPEED_RPM            0

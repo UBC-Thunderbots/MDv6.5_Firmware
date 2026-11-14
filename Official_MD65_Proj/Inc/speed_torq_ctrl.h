@@ -86,6 +86,8 @@ typedef struct
   int16_t TorqueRefDefault;            /*!< Default motor torque reference. This value represents actually the Iq
                                             current reference expressed in digit. */
   int16_t IdrefDefault;                /*!< Default Id current reference expressed in digit. */
+  float I2tAcc;                        /*!< I^2*t thermal accumulator in A^2*s (speed mode current limiter). */
+  bool I2tLimiting;                    /*!< True while the I^2*t limiter clamps Iq to the continuous current. */
 } SpeednTorqCtrl_Handle_t;
 
 /* Initializes all the object variables */

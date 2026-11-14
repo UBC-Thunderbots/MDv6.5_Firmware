@@ -26,6 +26,8 @@
 #include "speed_pos_fdbk.h"
 
 #include "mc_type.h"
+#include "drive_parameters.h"
+#include "parameters_conversion.h"
 
 #define CHECK_BOUNDARY
 
@@ -130,6 +132,8 @@ __weak void STC_Clear(SpeednTorqCtrl_Handle_t *pHandle)
     if (MCM_SPEED_MODE == pHandle->Mode)
     {
       PID_SetIntegralTerm(pHandle->PISpeed, 0);
+      pHandle->I2tAcc = 0.0f;
+      pHandle->I2tLimiting = false;
     }
     else if (MCM_TORQUE_MODE == pHandle->Mode)
     {
@@ -454,6 +458,64 @@ __weak int16_t STC_CalcTorqueReference(SpeednTorqCtrl_Handle_t *pHandle)
       hMeasuredSpeed = SPD_GetAvrgMecSpeedUnit(pHandle->SPD);
       hError = hTargetSpeed - hMeasuredSpeed;
       hTorqueReference = PI_Controller(pHandle->PISpeed, (int32_t)hError);
+
+      /* I^2*t thermal limiter: clamp sustained current to the motor's continuous rating.
+         Note: MCSDK-generated file; re-apply if the project is regenerated. */
+      {
+        const int32_t contDigits = (int32_t)(I2T_CONT_CURRENT_A * CURRENT_CONV_FACTOR);
+
+        if (pHandle->I2tLimiting)
+        {
+          if (hTorqueReference > contDigits)
+          {
+            hTorqueReference = (int16_t)contDigits;
+          }
+          else if (hTorqueReference < -contDigits)
+          {
+            hTorqueReference = (int16_t)(-contDigits);
+          }
+          else
+          {
+            /* Within the continuous rating, nothing to clamp */
+          }
+
+          /* Cap the integral so it does not wind up beyond the clamp (keeps lower values) */
+          const int32_t integCap = contDigits * (int32_t)pHandle->PISpeed->hKiDivisor;
+          if (pHandle->PISpeed->wIntegralTerm > integCap)
+          {
+            PID_SetIntegralTerm(pHandle->PISpeed, integCap);
+          }
+          else if (pHandle->PISpeed->wIntegralTerm < -integCap)
+          {
+            PID_SetIntegralTerm(pHandle->PISpeed, -integCap);
+          }
+          else
+          {
+            /* Integral already below the cap */
+          }
+        }
+
+        const float iAmp = (float)hTorqueReference / (float)CURRENT_CONV_FACTOR;
+        pHandle->I2tAcc += ((iAmp * iAmp) - (I2T_CONT_CURRENT_A * I2T_CONT_CURRENT_A))
+                           / (float)pHandle->STCFrequencyHz;
+        if (pHandle->I2tAcc < 0.0f)
+        {
+          pHandle->I2tAcc = 0.0f;
+        }
+        if (pHandle->I2tAcc >= I2T_LIMIT_A2S)
+        {
+          pHandle->I2tAcc = I2T_LIMIT_A2S;
+          pHandle->I2tLimiting = true;
+        }
+        else if (pHandle->I2tAcc <= (I2T_LIMIT_A2S * I2T_RESUME_RATIO))
+        {
+          pHandle->I2tLimiting = false;
+        }
+        else
+        {
+          /* Hysteresis band: keep current state */
+        }
+      }
 
       pHandle->SpeedRefUnitExt = wCurrentReference;
       pHandle->TorqueRef = ((int32_t)hTorqueReference) * 65536;
