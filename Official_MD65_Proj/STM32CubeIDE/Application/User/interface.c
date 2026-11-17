@@ -22,6 +22,7 @@ void ProcessRx_SetResponseType(const uint8_t *rx);	 //set response type of MD fo
 void ProcessRx_SetPidTorqueKpKi(const uint8_t *rx);  //set kp and ki for TORQUE PID controller
 void ProcessRx_SetPidFluxKpKi(const uint8_t *rx);	 //set kp and ki for FLUX PID controller
 void ProcessRx_SetPidSpeedKpKi(const uint8_t *rx);   //set kp and ki for SPEED PID controller
+void ProcessRx_ClearFaults(void);\t\t\t\t\t //acknowledge/clear motor faults
 void sendResponse(const uint8_t *txData);		 //send response back accorcing to response_type
 void configureResponse();
 
@@ -90,6 +91,9 @@ void Interface_Poll(void){
 			case SET_PID_SPEED_KP_KI:
 				ProcessRx_SetPidSpeedKpKi(rxData);
 				break;
+			case CLEAR_FAULTS:
+				ProcessRx_ClearFaults();
+				break;
 			default:
 				break;
 		}
@@ -101,112 +105,3 @@ void Interface_Poll(void){
 	}
 }
 
-//enabled or disable motor
-void setMotorEnabled(bool enabled){
-	//change motor state based on curent state and input.
-	if(enabled && !motor_enabled){
-		MC_StartMotor1();
-	}else if (!enabled && motor_enabled){
-		MC_StopMotor1();
-	}
-	//update motor state
-	motor_enabled = enabled;
-}
-
-//set target speed for motor
-//pass in pointer to array: beginning address
-void ProcessRx_SetTargetSpeed(const uint8_t *rx){
-
-	//WE CAN ENABLE/DISABLED MOTOR, and SET SPEED WITH THIS COMMAND
-	const int16_t motor_target_speed = (int16_t)(((uint16_t)rx[2] << 8) | rx[3]);  //bit shift byte 2 (left 8) and OR with byte 3 to create a 16 bit integer. search it up if you want to know how this works
-	MC_ProgramSpeedRampMotor1_F((float)motor_target_speed, 0U); //set the motor target speed according to above number
- 	setMotorEnabled(rx[1] != 0); //enabled or disabled motor based on first byte.
-
-}
-
-//set target torque for motor
-//pass in pointer to array: beginnig address of rxData
-//BASICALLY THE SAME AT THE set target speed function.
-void ProcessRx_SetTargetTorque(const uint8_t *rx){
-	const int16_t motor_target_torque = (int16_t)(((uint16_t)rx[2] << 8) | rx[3]);
-	MC_ProgramTorqueRampMotor1_F((float)motor_target_torque, 0U);
-	setMotorEnabled(rx[1] != 0);
-}
-
-//sets reponse type 
-void ProcessRx_SetResponseType(const uint8_t *rx)
-{
-  response_type = (ResponseType_t)rx[1];
-}
-
-//set kp ki for TORQUE PID CONTROLLER
-void ProcessRx_SetPidTorqueKpKi(const uint8_t *rx)
-{
-  const int16_t kp = (int16_t)(((uint16_t)rx[1] << 8) | rx[2]);
-  const int16_t ki = (int16_t)(((uint16_t)rx[3] << 8) | rx[4]);
-
-  PID_SetKP(&PIDIqHandle_M1, kp);
-  PID_SetKI(&PIDIqHandle_M1, ki);
-}
-
-//set kp ki for FLUX PID CONTROLLER
-void ProcessRx_SetPidFluxKpKi(const uint8_t *rx)
-{
-  const int16_t kp = (int16_t)(((uint16_t)rx[1] << 8) | rx[2]);
-  const int16_t ki = (int16_t)(((uint16_t)rx[3] << 8) | rx[4]);
-
-  PID_SetKP(&PIDIdHandle_M1, kp);
-  PID_SetKI(&PIDIdHandle_M1, ki);
-}
-
-//set kp ki for SPEED PID CONTROLLER
-void ProcessRx_SetPidSpeedKpKi(const uint8_t *rx)
-{
-  const int16_t kp = (int16_t)(((uint16_t)rx[1] << 8) | rx[2]);
-  const int16_t ki = (int16_t)(((uint16_t)rx[3] << 8) | rx[4]);
-
-  PID_SetKP(&PIDSpeedHandle_M1, kp);
-  PID_SetKI(&PIDSpeedHandle_M1, ki);
-}
-
-//sends response acording to the response_type ! needs to be loaded with the txData payload..
-void sendResponse(const uint8_t *txData) {
-	FDCAN_TxHeaderTypeDef txHeader;
-	txHeader.Identifier = CAN_TX_ID;
-	txHeader.IdType = FDCAN_STANDARD_ID;
-	txHeader.TxFrameType = FDCAN_DATA_FRAME;
-	txHeader.DataLength = FDCAN_DLC_BYTES_8;
-	txHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	txHeader.BitRateSwitch = FDCAN_BRS_OFF;
-	txHeader.FDFormat = FDCAN_CLASSIC_CAN;
-	txHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	txHeader.MessageMarker = 0;
-
-	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &txHeader, (uint8_t *)txData);
-  }
-
-//configure the response message
-void configureResponse(void){
-	uint8_t txData[MSG_DATA_LENGTH];
-	memset(txData, 0, MSG_DATA_LENGTH);
-	txData[0] = (uint8_t)response_type;
-
-	switch (response_type) {
-      	case SPEED_AND_FAULTS: {
-    		int16_t speed = MC_GetMecSpeedAverageMotor1();
-			int16_t faults = MC_GetOccurredFaultsMotor1();
-			txData[1] = (uint8_t)((speed >> 8) & 0xFF);
-			txData[2] = (uint8_t)(speed & 0xFF);
-			txData[3] = (uint8_t)((faults >> 8) & 0xFF);
-			txData[4] = (uint8_t)(faults & 0xFF);
-			break;
-      	}
-      	default:
-        	break;
- 	}
-
-	//now send reponse:
-	sendResponse(txData);
-
-	
-}

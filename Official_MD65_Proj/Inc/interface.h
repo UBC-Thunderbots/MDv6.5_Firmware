@@ -31,6 +31,7 @@ typedef enum {
   SET_PID_TORQUE_KP_KI         = 0x04,
   SET_PID_FLUX_KP_KI           = 0x05,
   SET_PID_SPEED_KP_KI          = 0x06,
+  CLEAR_FAULTS                 = 0x07, //acknowledge/clear latched motor faults
   //feed forward not inclueded yet.
   //SET_SPEED_FEED_FORWARD_KA_KV = 0x07,
   //SET_SPEED_FEED_FORWARD_KS    = 0x08,
