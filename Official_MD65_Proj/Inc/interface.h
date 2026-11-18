@@ -33,7 +33,7 @@ typedef enum {
   SET_PID_SPEED_KP_KI          = 0x06,
   //feed forward not inclueded yet.
   //SET_SPEED_FEED_FORWARD_KA_KV = 0x07,
-  //SET_SPEED_FEED_FORWARD_KS    = 0x08,
+  //SET_SPEED_FEED_FORWARD_KS    = 0x08
 } Opcode_t;
 
 typedef enum {
@@ -44,6 +44,7 @@ typedef enum {
   IQ_AND_IQ_REF             = 0x05,
   ID_AND_ID_REF             = 0x06,
   SPEED_AND_SPEED_REF       = 0x07,
+  //MOTOR_STATE               = 0x08
 } ResponseType_t;
 
 /**
@@ -67,6 +68,6 @@ typedef enum {
 } FaultCode_t;
 
 void Interface_Init(void);
-void Interface_Poll(void); //renamed to Interface_Poll because we are just doing a polling version.
+void Interface_Poll(void); //renamed to Interface_Poll because wyes
 
 #endif /* __INTERFACE_H */

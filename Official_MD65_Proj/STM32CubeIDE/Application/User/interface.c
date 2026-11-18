@@ -61,8 +61,6 @@ void Interface_Poll(void){
 	//FDCAN_TxHeaderTypeDef txHeader;
 	uint8_t rxData[MSG_DATA_LENGTH]; //array for processing the data portion of the can mesaages
 
-
-
 	//chekc recevie buffer. if greater than 1, than means message avaiable
 	if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0) > 0) {
 		//retreive from fifo0
@@ -70,9 +68,6 @@ void Interface_Poll(void){
 
 		//the first byte of the received payload (8 bytes total) is the opcode of message. the CAN message header is just ID, which determindes which board receives what message.
 		//process the message based on OPCODE (do what OPCODE tells us to)
-		// }
-
-		//now repond..
 		processCommand(rxData);
 		configureAndSendResponse();
 
@@ -177,6 +172,8 @@ void ProcessRx_SetPidSpeedKpKi(const uint8_t *rx)
 }
 
 //sends response acording to the response_type ! needs to be loaded with the txData payload..
+
+//i have a separate send function just so the confugure and send function isnt super long. could oragnize better if tyou want to go ahead.
 void sendResponse(const uint8_t *txData) {
 	FDCAN_TxHeaderTypeDef txHeader;
 	txHeader.Identifier = CAN_TX_ID;

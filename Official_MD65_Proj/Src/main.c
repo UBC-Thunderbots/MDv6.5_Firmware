@@ -149,7 +149,7 @@ int main(void)
 
   MX_FDCAN1_Init();
   MX_SPI1_Init();
- // MX_MotorControl_Init();
+  MX_MotorControl_Init();
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
@@ -185,22 +185,22 @@ int main(void)
 //  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);                                        /* nFAULT */
 //  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E); /* comparators */
 //
-//  //CLOSED LOOP CODE
-//   MCI_SetSpeedMode(pMCI[M1]);
+  //CLOSED LOOP CODE
+//  MCI_SetSpeedMode(pMCI[M1]);
 //   MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
 //   (void)MC_StartMotor1();
 //
 //   HAL_Delay(1000U);
 //   MC_ProgramSpeedRampMotor1_F(100.0f, 3000U);
 //
-//   HAL_Delay(2000U);
-//   MC_ProgramSpeedRampMotor1_F(-100.0f, 3000U);
+//  HAL_Delay(3000U);
+//  MC_ProgramSpeedRampMotor1_F(-100.0f, 3000U);
 //
-//   HAL_Delay(2000U);
+//  HAL_Delay(1000U);
 //   MC_ProgramSpeedRampMotor1_F(-1000.0f, 3000U);
-
- //  HAL_Delay(20000U);
-  // MC_StopMotor1();
+//
+//   HAL_Delay(10000U);
+//   MC_StopMotor1();
 
 
   /* USER CODE END 2 */
