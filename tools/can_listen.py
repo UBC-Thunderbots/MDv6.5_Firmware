@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Listen for CAN frames and print them."""
 
 import can

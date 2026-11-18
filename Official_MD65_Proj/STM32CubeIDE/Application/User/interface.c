@@ -15,6 +15,7 @@ static ResponseType_t response_type = SPEED_AND_FAULTS; //look in interface.h
 static bool motor_enabled = false; 						//initial motor state!
 
 //function prototypes
+void JumpToBootloader(void);						 //jump back to bootloader
 void processCommand(const uint8_t *rxData); 		 //process the message
 void setMotorEnabled(bool enabled);
 void ProcessRx_SetTargetSpeed(const uint8_t *rx);    //set target speed for motor
@@ -43,6 +44,12 @@ void Interface_Init(void){
 	//pass into filter configuring function
 	HAL_FDCAN_ConfigFilter(&hfdcan1, &canFilter);
 
+	//second filter for reboot command (0x800)
+	canFilter.FilterIndex = 1;
+	canFilter.FilterID1 = CAN_REBOOT_ID;
+	canFilter.FilterID2 = CAN_REBOOT_ID;
+	HAL_FDCAN_ConfigFilter(&hfdcan1, &canFilter);
+
 	//tells hardawre what to do with rejected can messages.
 	//ignore everything not meant for this board.
 	HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT, FDCAN_REJECT_REMOTE, FDCAN_REJECT_REMOTE);
@@ -66,12 +73,15 @@ void Interface_Poll(void){
 		//retreive from fifo0
 		HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &rxHeader, rxData);
 
-		//the first byte of the received payload (8 bytes total) is the opcode of message. the CAN message header is just ID, which determindes which board receives what message.
-		//process the message based on OPCODE (do what OPCODE tells us to)
+		//check if this is a reboot command
+		if (rxHeader.Identifier == CAN_REBOOT_ID) {
+			JumpToBootloader();
+			return;
+		}
+
+		//the first byte of the received payload (8 bytes total) is the opcode of message.
 		processCommand(rxData);
 		configureAndSendResponse();
-
-
 	}
 }
 
@@ -270,6 +280,14 @@ void configureAndSendResponse(void){
 
 
 
+
+//jump back to bootloader via system reset
+void JumpToBootloader(void){
+	MC_StopMotor1();
+	HAL_FDCAN_Stop(&hfdcan1);
+	HAL_FDCAN_DeInit(&hfdcan1);
+	NVIC_SystemReset();
+}
 
 //end
 

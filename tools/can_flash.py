@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""STM32 CAN Bootloader host tool.
+"""STM32 CAN Bootloader host tool for MD6.5.
 
 Commands:
   flash <file.bin>  — Send new firmware over CAN, then boot it
   boot              — Tell the bootloader to jump to the existing app
+  reboot            — Tell the running app to jump back to bootloader
 
-Protocol (must match BootloaderFW/Core/Src/main.c):
-  0x100 BOOT : no payload — jump to existing app
-  0x101 START: bytes 0-3 = image size (uint32 LE, multiple of 8, <= 256 KiB)
-  0x102 DATA : 8 raw firmware bytes, in address order
-  0x103 END  : bytes 0-3 = CRC-32/MPEG-2 of the padded image (uint32 LE)
+Protocol (must match MDV6.5_Bootloader/Core/Src/main.c):
+  0x800 REBOOT: no payload — app jumps back to bootloader
+  0x900 BOOT  : no payload — bootloader jumps to existing app
+  0x901 START : bytes 0-3 = image size (uint32 LE, multiple of 8, <= 96 KiB)
+  0x902 DATA  : 8 raw firmware bytes, in address order
+  0x903 END   : bytes 0-3 = CRC-32/MPEG-2 of the padded image (uint32 LE)
 """
 import argparse
 import struct
@@ -23,12 +25,15 @@ except ImportError:
     print("  pip install python-can")
     sys.exit(1)
 
-BOOT_ID  = 0x100
-START_ID = 0x101
-DATA_ID  = 0x102
-END_ID   = 0x103
-MAX_IMAGE = 0x40000  # 256 KiB, Bank2
-PAD_BYTE = 0xFF      # erased-flash value
+DEFAULT_FW = "Official_MD65_Proj/STM32CubeIDE/Debug/Official_MD65_Proj.bin"
+
+REBOOT_ID = 0x800
+BOOT_ID   = 0x900
+START_ID  = 0x901
+DATA_ID   = 0x902
+END_ID    = 0x903
+MAX_IMAGE = 96 * 1024  # 96 KiB
+PAD_BYTE  = 0xFF       # erased-flash value
 
 
 def _build_table():
@@ -76,13 +81,24 @@ def open_bus(args):
         sys.exit(f"Error opening CAN bus: {e}")
 
 
+def cmd_reboot(args):
+    """Send REBOOT command to make running app jump back to bootloader."""
+    print("Sending REBOOT command (0x800)...")
+    bus = open_bus(args)
+    try:
+        bus.send(can.Message(arbitration_id=REBOOT_ID, data=[], is_extended_id=False))
+        print("REBOOT sent. App should jump to bootloader.")
+    finally:
+        bus.shutdown()
+
+
 def cmd_boot(args):
     """Send BOOT command to jump to existing app."""
-    print("Sending BOOT command (0x100)...")
+    print("Sending BOOT command (0x900)...")
     bus = open_bus(args)
     try:
         bus.send(can.Message(arbitration_id=BOOT_ID, data=[], is_extended_id=False))
-        print("BOOT sent. Board should jump to application.")
+        print("BOOT sent. Bootloader should jump to application.")
     finally:
         bus.shutdown()
 
@@ -105,7 +121,7 @@ def cmd_flash(args):
 
     # --- Print firmware info ---
     print("=" * 55)
-    print("  STM32 CAN Bootloader - Firmware Flasher")
+    print("  MD6.5 CAN Bootloader - Firmware Flasher")
     print("=" * 55)
     print(f"  File     : {args.firmware}")
     print(f"  Size     : {original_size} bytes ({original_size / 1024:.1f} KB)")
@@ -173,27 +189,30 @@ def cmd_flash(args):
 
 def main():
     ap = argparse.ArgumentParser(
-        description="STM32 CAN Bootloader host tool",
+        description="MD6.5 CAN Bootloader host tool",
     )
 
     # Common CAN arguments
     ap.add_argument("-i", "--interface", default="slcan",
                     help="python-can interface (default: slcan). "
                          "Examples: slcan, socketcan, pcan, ixxat")
-    ap.add_argument("-c", "--channel", default="COM5",
-                    help="CAN channel/device (default: COM5). "
-                         "Examples: COM5, /dev/tty.usbmodemXXXX, can0, PCAN_USBBUS1")
-    ap.add_argument("-b", "--bitrate", type=int, default=500000,
-                    help="CAN bitrate in bps (default: 500000)")
+    ap.add_argument("-c", "--channel", default="/dev/cu.usbmodem387C386630361",
+                    help="CAN channel/device")
+    ap.add_argument("-b", "--bitrate", type=int, default=1000000,
+                    help="CAN bitrate in bps (default: 1000000)")
 
     sub = ap.add_subparsers(dest="command", required=True)
+
+    # reboot subcommand
+    sub.add_parser("reboot", help="Tell running app to jump back to bootloader")
 
     # boot subcommand
     sub.add_parser("boot", help="Tell bootloader to jump to existing app")
 
     # flash subcommand
     flash_p = sub.add_parser("flash", help="Flash new firmware over CAN")
-    flash_p.add_argument("firmware", help="Path to .bin firmware file")
+    flash_p.add_argument("firmware", nargs="?", default=DEFAULT_FW,
+                         help="Path to .bin firmware file (default: %(default)s)")
     flash_p.add_argument("-d", "--frame-delay", type=float, default=0.005,
                          help="seconds between DATA frames (default: 0.005)")
     flash_p.add_argument("--erase-wait", type=float, default=5.0,
@@ -203,7 +222,9 @@ def main():
 
     args = ap.parse_args()
 
-    if args.command == "boot":
+    if args.command == "reboot":
+        cmd_reboot(args)
+    elif args.command == "boot":
         cmd_boot(args)
     elif args.command == "flash":
         cmd_flash(args)

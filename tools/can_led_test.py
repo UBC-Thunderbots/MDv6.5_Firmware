@@ -1,15 +1,15 @@
-"""Send a CAN frame to 0x101 every second to toggle the motor driver LED."""
+#!/usr/bin/env python3
+"""Send a CAN frame to motor driver every second for testing."""
 
 import can
 import time
 import sys
 
-CHANNEL = "/dev/cu.usbmodem3801"  # update this to match your CANable port
+CHANNEL = "/dev/cu.usbmodem387C386630361"
 BITRATE = 1_000_000
-CAN_ID = 0x101
+CAN_ID = 0x101  # motor driver RX ID (MD_ID=1)
 
 def main():
-    # update channel if provided as argument
     channel = sys.argv[1] if len(sys.argv) > 1 else CHANNEL
 
     bus = can.interface.Bus(
@@ -26,13 +26,13 @@ def main():
         while True:
             msg = can.Message(
                 arbitration_id=CAN_ID,
-                data=[0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+                data=[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
                 is_extended_id=False,
             )
             bus.send(msg)
             count += 1
             print(f"Sent frame #{count}")
-            time.sleep(3.0)
+            time.sleep(1.0)
     except KeyboardInterrupt:
         print("\nStopped.")
     finally:
