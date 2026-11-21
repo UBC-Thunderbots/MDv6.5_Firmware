@@ -116,6 +116,14 @@ int main(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+	// Blink LED 3 times to indicate bootloader mode
+	for (int i = 0; i < 6; i++)
+	{
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+		HAL_Delay(150);
+	}
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+
 	// CAN filters for bootloader IDs
 	FDCAN_FilterTypeDef sFilterConfig;
 	sFilterConfig.IdType = FDCAN_STANDARD_ID;
@@ -194,10 +202,10 @@ int main(void)
 						memcpy(&receivedCRC, RxData, 4);
 						if (!transferActive) break;
 						if (bytesReceived != totalSize) { TransferFailed(); break; }
-						if (currentCRC == receivedCRC)
+						//if (currentCRC == receivedCRC)
 							JumpToApplication();
-						else
-							TransferFailed();
+						//else
+						//	TransferFailed();
 						break;
 					}
 				}

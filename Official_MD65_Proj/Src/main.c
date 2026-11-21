@@ -157,6 +157,14 @@ int main(void)
   //initzation interafce1
   Interface_Init();
 
+  // Blink LED 5 times to confirm app is running
+  for (int i = 0; i < 10; i++)
+  {
+	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	  HAL_Delay(100);
+  }
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+
 
 
   //OPEN LOOP CODE
