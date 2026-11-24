@@ -33,10 +33,14 @@ typedef void (*app_entry_t)(void);
 /* USER CODE BEGIN PD */
 #define APP_BASE_ADDRESS	0x08008000
 #define MAX_APP_SIZE		(96 * 1024)
-#define CAN_ID_BOOT			0x900
-#define CAN_ID_START		0x901
-#define CAN_ID_DATA			0x902
-#define CAN_ID_END			0x903
+#define CAN_ID_BOOT			0x700
+#define CAN_ID_START		0x701
+#define CAN_ID_DATA			0x702
+#define CAN_ID_END			0x703
+
+// RAM flag for clean reset-then-jump (survives NVIC_SystemReset)
+#define BOOT_TO_APP_FLAG	(*((volatile uint32_t*)0x20007F00))
+#define BOOT_TO_APP_MAGIC	0xB007A990
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -82,7 +86,14 @@ HAL_StatusTypeDef FlashWrite(uint32_t address, uint8_t *data, uint32_t length);
 int main(void)
 {
 	/* USER CODE BEGIN 1 */
-
+	// Check RAM flag: if set, we came from NVIC_SystemReset after a flash
+	// All peripherals are in clean reset state — jump straight to app
+	if (BOOT_TO_APP_FLAG == BOOT_TO_APP_MAGIC){
+		BOOT_TO_APP_FLAG = 0;
+		SCB->VTOR = APP_BASE_ADDRESS;
+		__set_MSP(*((volatile uint32_t*)APP_BASE_ADDRESS));
+		((void(*)(void))(*((volatile uint32_t*)(APP_BASE_ADDRESS + 4))))();
+	}
 	/* USER CODE END 1 */
 
 	/* MCU Configuration--------------------------------------------------------*/
@@ -116,11 +127,10 @@ int main(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-	// Blink LED 3 times to indicate bootloader mode
-	for (int i = 0; i < 6; i++)
-	{
+	// Bblknilink LED 3 times to indicate bootloader mode
+	for (int i = 0; i < 6; i++){
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-		HAL_Delay(150);
+		HAL_Delay(500);
 	}
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 
@@ -153,10 +163,18 @@ int main(void)
 	if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
 		Error_Handler();
 	}
+
+	// DEBUG: confirm CAN is ready (1 quick blink)
+	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+	HAL_Delay(100);
+	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+
+	//WRITING EXPLANTION COMMENTS LATER> JUST WANTED TIO EGET THIS FINIEAHED>
 	while (1)
 	{
 		/* USER CODE END WHILE */
@@ -202,10 +220,10 @@ int main(void)
 						memcpy(&receivedCRC, RxData, 4);
 						if (!transferActive) break;
 						if (bytesReceived != totalSize) { TransferFailed(); break; }
-						//if (currentCRC == receivedCRC)
+						if (currentCRC == receivedCRC)
 							JumpToApplication();
-						//else
-						//	TransferFailed();
+						else
+							TransferFailed();
 						break;
 					}
 				}
@@ -364,14 +382,10 @@ void TransferFailed(void)
 
 void JumpToApplication(void)
 {
-	uint32_t app_stack_pointer = *((volatile uint32_t*)APP_BASE_ADDRESS);
-	uint32_t app_reset_handler = *((volatile uint32_t*)(APP_BASE_ADDRESS + 4));
-	app_entry_t app_entry = (app_entry_t)app_reset_handler;
-	__disable_irq();
-	SCB->VTOR = APP_BASE_ADDRESS;
-	__set_MSP(app_stack_pointer);
-	__enable_irq();
-	app_entry();
+	// Set RAM flag and do a full hardware reset
+	// On reboot, main() sees the flag and jumps to app with clean peripheral state
+	BOOT_TO_APP_FLAG = BOOT_TO_APP_MAGIC;
+	NVIC_SystemReset();
 }
 
 HAL_StatusTypeDef FlashErase(void)

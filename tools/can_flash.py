@@ -7,11 +7,11 @@ Commands:
   reboot            — Tell the running app to jump back to bootloader
 
 Protocol (must match MDV6.5_Bootloader/Core/Src/main.c):
-  0x800 REBOOT: no payload — app jumps back to bootloader
-  0x900 BOOT  : no payload — bootloader jumps to existing app
-  0x901 START : bytes 0-3 = image size (uint32 LE, multiple of 8, <= 96 KiB)
-  0x902 DATA  : 8 raw firmware bytes, in address order
-  0x903 END   : bytes 0-3 = CRC-32/MPEG-2 of the padded image (uint32 LE)
+  0x7F0 REBOOT: no payload — app jumps back to bootloader
+  0x700 BOOT  : no payload — bootloader jumps to existing app
+  0x701 START : bytes 0-3 = image size (uint32 LE, multiple of 8, <= 96 KiB)
+  0x702 DATA  : 8 raw firmware bytes, in address order
+  0x703 END   : bytes 0-3 = CRC-32/MPEG-2 of the padded image (uint32 LE)
 """
 import argparse
 import struct
@@ -27,11 +27,11 @@ except ImportError:
 
 DEFAULT_FW = "Official_MD65_Proj/STM32CubeIDE/Debug/Official_MD65_Proj.bin"
 
-REBOOT_ID = 0x800
-BOOT_ID   = 0x900
-START_ID  = 0x901
-DATA_ID   = 0x902
-END_ID    = 0x903
+REBOOT_ID = 0x7F0
+BOOT_ID   = 0x700
+START_ID  = 0x701
+DATA_ID   = 0x702
+END_ID    = 0x703
 MAX_IMAGE = 96 * 1024  # 96 KiB
 PAD_BYTE  = 0xFF       # erased-flash value
 
@@ -83,10 +83,11 @@ def open_bus(args):
 
 def cmd_reboot(args):
     """Send REBOOT command to make running app jump back to bootloader."""
-    print("Sending REBOOT command (0x800)...")
+    print("Sending REBOOT command (0x7F0)...")
     bus = open_bus(args)
     try:
-        bus.send(can.Message(arbitration_id=REBOOT_ID, data=[], is_extended_id=False))
+        bus.send(can.Message(arbitration_id=REBOOT_ID, data=[0]*8, is_extended_id=False))
+        time.sleep(1.0)  # let slcan transmit before shutdown
         print("REBOOT sent. App should jump to bootloader.")
     finally:
         bus.shutdown()
@@ -94,10 +95,11 @@ def cmd_reboot(args):
 
 def cmd_boot(args):
     """Send BOOT command to jump to existing app."""
-    print("Sending BOOT command (0x900)...")
+    print("Sending BOOT command (0x700)...")
     bus = open_bus(args)
     try:
         bus.send(can.Message(arbitration_id=BOOT_ID, data=[], is_extended_id=False))
+        time.sleep(1.0)  # let slcan transmit before shutdown
         print("BOOT sent. Bootloader should jump to application.")
     finally:
         bus.shutdown()

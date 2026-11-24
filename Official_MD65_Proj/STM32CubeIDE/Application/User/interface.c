@@ -44,7 +44,7 @@ void Interface_Init(void){
 	//pass into filter configuring function
 	HAL_FDCAN_ConfigFilter(&hfdcan1, &canFilter);
 
-	//second filter for reboot command (0x800)
+	//second filter for reboot command (0x7F0)
 	canFilter.FilterIndex = 1;
 	canFilter.FilterID1 = CAN_REBOOT_ID;
 	canFilter.FilterID2 = CAN_REBOOT_ID;

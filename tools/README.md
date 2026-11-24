@@ -87,8 +87,8 @@ Set with `rtype <n>` in md_control:
 |----|-----------|---------|
 | 0x101 | PC → MD | Motor commands (opcodes) |
 | 0x201 | MD → PC | Motor responses |
-| 0x800 | PC → MD | Reboot to bootloader |
-| 0x900 | PC → MD | Bootloader: jump to app |
-| 0x901 | PC → MD | Bootloader: start flash |
-| 0x902 | PC → MD | Bootloader: data frame |
-| 0x903 | PC → MD | Bootloader: end/verify |
+| 0x7F0 | PC → MD | Reboot to bootloader |
+| 0x700 | PC → MD | Bootloader: jump to app |
+| 0x701 | PC → MD | Bootloader: start flash |
+| 0x702 | PC → MD | Bootloader: data frame |
+| 0x703 | PC → MD | Bootloader: end/verify |

@@ -165,7 +165,13 @@ int main(void)
   }
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 
-
+  HAL_Delay(1000);
+  for (int i = 0; i < 10; i++)
+    {
+  	  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+  	  HAL_Delay(200);
+    }
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 
   //OPEN LOOP CODE
 
@@ -192,23 +198,24 @@ int main(void)
   /* Disable all overcurrent break sources for testing - USE CURRENT-LIMITED SUPPLY */
 //  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKINE);                                        /* nFAULT */
 //  CLEAR_BIT(TIM1->AF1, TIM1_AF1_BKCMP1E | TIM1_AF1_BKCMP2E | TIM1_AF1_BKCMP4E); /* comparators */
-//
+////
   //CLOSED LOOP CODE
-//  MCI_SetSpeedMode(pMCI[M1]);
-//   MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
-//   (void)MC_StartMotor1();
-//
-//   HAL_Delay(1000U);
-//   MC_ProgramSpeedRampMotor1_F(100.0f, 3000U);
-//
-//  HAL_Delay(3000U);
-//  MC_ProgramSpeedRampMotor1_F(-100.0f, 3000U);
-//
-//  HAL_Delay(1000U);
-//   MC_ProgramSpeedRampMotor1_F(-1000.0f, 3000U);
-//
-//   HAL_Delay(10000U);
-//   MC_StopMotor1();
+    //TEST COEDRES TEST CODE TEST CODE
+  MCI_SetSpeedMode(pMCI[M1]);
+   MC_ProgramSpeedRampMotor1_F(0.0f, 0U);
+   (void)MC_StartMotor1();
+
+   HAL_Delay(1000U);
+   MC_ProgramSpeedRampMotor1_F(-1000.0f, 1000U);
+
+  HAL_Delay(1000U);
+  MC_ProgramSpeedRampMotor1_F(100.0f, 3000U);
+
+  HAL_Delay(1000U);
+   MC_ProgramSpeedRampMotor1_F(-500.0f, 3000U);
+
+   HAL_Delay(5000U);
+   MC_StopMotor1();
 
 
   /* USER CODE END 2 */
@@ -678,7 +685,7 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.DataSyncJumpWidth = 1;
   hfdcan1.Init.DataTimeSeg1 = 1;
   hfdcan1.Init.DataTimeSeg2 = 1;
-  hfdcan1.Init.StdFiltersNbr = 1;
+  hfdcan1.Init.StdFiltersNbr = 2;
   hfdcan1.Init.ExtFiltersNbr = 0;
   hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)

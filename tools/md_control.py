@@ -4,10 +4,10 @@
 Interactive tool for sending commands and reading responses from the
 motor driver over CAN bus, matching the interface defined in interface.h.
 
-CAN IDs:
-  TX to MD:   0x101 (CAN_RX_ID = 0x100 + MD_ID)
-  RX from MD: 0x201 (CAN_TX_ID = 0x200 + MD_ID)
-  Reboot:     0x800
+CAN IDs (per motor driver):
+  TX to MD:   0x100 + MD_ID  (e.g. MD1=0x101, MD2=0x102, MD3=0x103, MD4=0x104)
+  RX from MD: 0x200 + MD_ID  (e.g. MD1=0x201, MD2=0x202, MD3=0x203, MD4=0x204)
+  Reboot:     0x7F0 (broadcast, all MDs)
 
 Message format (8 bytes):
   Byte 0: opcode
@@ -31,11 +31,8 @@ except ImportError:
     print("  pip install python-can")
     sys.exit(1)
 
-# CAN IDs
-MD_ID = 1
-CAN_TX_ID = 0x100 + MD_ID  # we send to this
-CAN_RX_ID = 0x200 + MD_ID  # we receive from this
-CAN_REBOOT_ID = 0x800
+# CAN IDs (computed from MD_ID, set via --md-id argument)
+CAN_REBOOT_ID = 0x7F0
 
 # Opcodes
 NO_OP              = 0x00
@@ -105,6 +102,11 @@ def decode_response(data):
         return f"[{name}] speed={val1} RPM, speed_ref={val2} RPM"
     else:
         return f"[{name}] val1={val1}, val2={val2}"
+
+
+# Globals set by main() based on --md-id
+CAN_TX_ID = 0x101
+CAN_RX_ID = 0x201
 
 
 def send_and_recv(bus, data, timeout=0.5):
@@ -210,8 +212,9 @@ def cmd_noop(bus, args):
 
 
 def cmd_interactive(bus, args):
+    md_id = args.md_id
     print("=" * 55)
-    print("  MD6.5 Motor Driver - Interactive Control")
+    print(f"  MD6.5 Motor Driver - Interactive Control (MD{md_id})")
     print("=" * 55)
     print()
     print("Commands:")
@@ -334,8 +337,9 @@ def cmd_interactive(bus, args):
                     print("  No response")
 
             elif cmd == "reboot":
-                msg = can.Message(arbitration_id=CAN_REBOOT_ID, data=[], is_extended_id=False)
+                msg = can.Message(arbitration_id=CAN_REBOOT_ID, data=[0]*8, is_extended_id=False)
                 bus.send(msg)
+                time.sleep(1.0)  # let slcan transmit before shutdown
                 print("  Reboot sent. App should jump to bootloader.")
                 break
 
@@ -383,6 +387,8 @@ def main():
                     help="CAN channel/device")
     ap.add_argument("-b", "--bitrate", type=int, default=1000000,
                     help="CAN bitrate (default: 1000000)")
+    ap.add_argument("-m", "--md-id", type=int, default=1, choices=[1, 2, 3, 4],
+                    help="Motor driver ID (1-4, default: 1)")
 
     sub = ap.add_subparsers(dest="command")
 
@@ -417,6 +423,11 @@ def main():
     sub.add_parser("noop", help="Send NO_OP and read response")
 
     args = ap.parse_args()
+
+    global CAN_TX_ID, CAN_RX_ID
+    CAN_TX_ID = 0x100 + args.md_id
+    CAN_RX_ID = 0x200 + args.md_id
+    print(f"Targeting MD{args.md_id} (TX: 0x{CAN_TX_ID:03X}, RX: 0x{CAN_RX_ID:03X})")
 
     bus = can.Bus(interface=args.interface, channel=args.channel, bitrate=args.bitrate)
 
