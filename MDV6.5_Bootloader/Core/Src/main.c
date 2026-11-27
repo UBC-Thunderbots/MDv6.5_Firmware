@@ -33,6 +33,7 @@ typedef void (*app_entry_t)(void);
 /* USER CODE BEGIN PD */
 #define APP_BASE_ADDRESS	0x08008000
 #define MAX_APP_SIZE		(96 * 1024)
+//BOOTLODAER MESSAGE IDS
 #define CAN_ID_BOOT			0x700
 #define CAN_ID_START		0x701
 #define CAN_ID_DATA			0x702
@@ -127,34 +128,22 @@ int main(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-	// Bblknilink LED 3 times to indicate bootloader mode
+	// Blink LED 3 times to indicate bootloader mode
 	for (int i = 0; i < 6; i++){
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 		HAL_Delay(500);
 	}
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 
-	// CAN filters for bootloader IDs
+	// Single CAN filter for bootloader IDs 0x700-0x703
+	// Mask 0x7FC = ignore bottom 2 bits, match 0x700 base
 	FDCAN_FilterTypeDef sFilterConfig;
 	sFilterConfig.IdType = FDCAN_STANDARD_ID;
+	sFilterConfig.FilterIndex = 0;
 	sFilterConfig.FilterType = FDCAN_FILTER_MASK;
 	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-	sFilterConfig.FilterID2 = 0x7FF;
-
-	sFilterConfig.FilterIndex = 0;
-	sFilterConfig.FilterID1 = CAN_ID_BOOT;
-	HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig);
-
-	sFilterConfig.FilterIndex = 1;
-	sFilterConfig.FilterID1 = CAN_ID_START;
-	HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig);
-
-	sFilterConfig.FilterIndex = 2;
-	sFilterConfig.FilterID1 = CAN_ID_DATA;
-	HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig);
-
-	sFilterConfig.FilterIndex = 3;
-	sFilterConfig.FilterID1 = CAN_ID_END;
+	sFilterConfig.FilterID1 = CAN_ID_BOOT;	// 0x700
+	sFilterConfig.FilterID2 = 0x7FC;		// mask: accept 0x700-0x703
 	HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig);
 
 	HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT,
@@ -164,7 +153,7 @@ int main(void)
 		Error_Handler();
 	}
 
-	// DEBUG: confirm CAN is ready (1 quick blink)
+	// Quick blink to indicate CAN is ready
 	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 	HAL_Delay(100);
 	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
@@ -174,19 +163,23 @@ int main(void)
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 
-	//WRITING EXPLANTION COMMENTS LATER> JUST WANTED TIO EGET THIS FINIEAHED>
 	while (1)
 	{
 		/* USER CODE END WHILE */
+		//see if "mailbox" is populated
 		if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0) > 0)
-		{
+		{	
+			//RxHeader Instance
 			FDCAN_RxHeaderTypeDef RxHeader;
 			uint8_t RxData[8];
 
+			//if no error in retrieving message
 			if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
-			{
+			{	
+				//BOOT, START FLASHING, DATA, OR END FLASHING.
 				switch (RxHeader.Identifier)
-				{
+				{	
+
 					case CAN_ID_BOOT:
 						HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 						if (AppIsValid()) JumpToApplication();
@@ -196,7 +189,8 @@ int main(void)
 						HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 						memcpy(&totalSize, RxData, 4);
 						if (totalSize > MAX_APP_SIZE || totalSize % 8 != 0) { TransferFailed(); break; }
-						if (FlashErase() != HAL_OK) { TransferFailed(); break; }
+						HAL_FLASH_Unlock();
+						if (FlashErase() != HAL_OK) { HAL_FLASH_Lock(); TransferFailed(); break; }
 						HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 						currentCRC = 0;
 						__HAL_CRC_DR_RESET(&hcrc);
@@ -207,8 +201,8 @@ int main(void)
 
 					case CAN_ID_DATA:
 						if (!transferActive) break;
-						if (bytesReceived + 8 > totalSize) { TransferFailed(); break; }
-						if (FlashWrite(writeAddress, RxData, 8) != HAL_OK) { TransferFailed(); break; }
+						if (bytesReceived + 8 > totalSize) { HAL_FLASH_Lock(); TransferFailed(); break; }
+						if (FlashWrite(writeAddress, RxData, 8) != HAL_OK) { HAL_FLASH_Lock(); TransferFailed(); break; }
 						currentCRC = HAL_CRC_Accumulate(&hcrc, (uint32_t*)RxData, 8);
 						writeAddress += 8;
 						bytesReceived += 8;
@@ -218,6 +212,7 @@ int main(void)
 					{
 						uint32_t receivedCRC;
 						memcpy(&receivedCRC, RxData, 4);
+						HAL_FLASH_Lock();
 						if (!transferActive) break;
 						if (bytesReceived != totalSize) { TransferFailed(); break; }
 						if (currentCRC == receivedCRC)
@@ -330,7 +325,7 @@ static void MX_FDCAN1_Init(void)
 	hfdcan1.Init.DataSyncJumpWidth = 1;
 	hfdcan1.Init.DataTimeSeg1 = 1;
 	hfdcan1.Init.DataTimeSeg2 = 1;
-	hfdcan1.Init.StdFiltersNbr = 4;
+	hfdcan1.Init.StdFiltersNbr = 1;
 	hfdcan1.Init.ExtFiltersNbr = 0;
 	hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
 	if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
@@ -390,21 +385,17 @@ void JumpToApplication(void)
 
 HAL_StatusTypeDef FlashErase(void)
 {
-	HAL_FLASH_Unlock();
 	FLASH_EraseInitTypeDef eraseConfig;
 	eraseConfig.TypeErase = FLASH_TYPEERASE_PAGES;
 	eraseConfig.Banks = FLASH_BANK_1;
 	eraseConfig.Page = 16;		// page 16 = 0x08008000
 	eraseConfig.NbPages = 48;	// pages 16-63 = 96 KB
 	uint32_t pageError;
-	HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&eraseConfig, &pageError);
-	HAL_FLASH_Lock();
-	return status;
+	return HAL_FLASHEx_Erase(&eraseConfig, &pageError);
 }
 
 HAL_StatusTypeDef FlashWrite(uint32_t address, uint8_t *data, uint32_t length)
 {
-	HAL_FLASH_Unlock();
 	HAL_StatusTypeDef status = HAL_OK;
 	for (uint32_t i = 0; i < length; i += 8)
 	{
@@ -413,7 +404,6 @@ HAL_StatusTypeDef FlashWrite(uint32_t address, uint8_t *data, uint32_t length)
 		status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, address + i, chunk);
 		if (status != HAL_OK) break;
 	}
-	HAL_FLASH_Lock();
 	return status;
 }
 /* USER CODE END 4 */
